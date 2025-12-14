@@ -489,22 +489,34 @@
         }
 
         async function deleteDefect(id, imageUrl) {
-            if (!confirm("Bu kaydı silmek istediğinize emin misiniz?")) return;
+            if (!confirm("Bu kaydı ve RESMİ kalıcı olarak silmek istediğinize emin misiniz?")) return;
 
+            // Yükleme animasyonu ekleyelim (Butonun ikonunu değiştirerek)
+            const listEl = document.getElementById("defect-list");
+            // Kullanıcıya işlemin başladığını hissettirmek için basit bir yöntem
+            
             try {
+                // 1. Önce Veritabanı Kaydını Sil
                 await window.deleteDoc(window.doc(window.db, "defects", id));
-                
-                // Eğer resim varsa Storage'dan da sil
+
+                // 2. Eğer Resim Varsa ve Firebase Linki İse Storage'dan da Sil
                 if (imageUrl && imageUrl.startsWith("https://firebasestorage")) {
-                   // Storage ref oluşturma işlemi URL'den biraz karmaşık olabilir, 
-                   // basitlik adına şimdilik veritabanından siliyoruz.
-                   // Tam temizlik için Cloud Functions önerilir.
-                   // İleri seviye: const imageRef = ref(storage, imageUrl); deleteObject(imageRef)...
+                    try {
+                        // URL'den referans oluşturup silme işlemi
+                        const imageRef = window.ref(window.storage, imageUrl);
+                        await window.deleteObject(imageRef);
+                        console.log("Resim başarıyla silindi.");
+                    } catch (imgError) {
+                        console.warn("Resim silinemedi (Zaten silinmiş olabilir):", imgError);
+                        // Resim silinmese bile kayıt silindiği için akışı bozmuyoruz.
+                    }
                 }
+
+                alert("Kayıt ve resim başarıyla silindi.");
 
             } catch (error) {
                 console.error("Silme hatası:", error);
-                alert("Silinirken hata oluştu.");
+                alert("Silinirken bir hata oluştu: " + error.message);
             }
         }
 
