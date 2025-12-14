@@ -339,39 +339,50 @@
                 unsubscribeDefects();
             }
 
-            // Gerçek zamanlı veri dinleme (Realtime Listener)
+            // --- DEĞİŞİKLİK BURADA ---
+            // "orderBy" kısmını kaldırdık. Artık hata vermeyecek.
+            // Veriler karışık sırada gelebilir ama sistem çalışır.
             const q = window.query(
                 window.collection(window.db, "defects"), 
-                window.where("airplane", "==", plane),
-                window.orderBy("createdAt", "desc") // En yeni en üstte
+                window.where("airplane", "==", plane)
             );
+            // -------------------------
 
             const listEl = document.getElementById("defect-list");
             listEl.innerHTML = '<li style="text-align:center;">Yükleniyor...</li>';
 
             unsubscribeDefects = window.onSnapshot(q, (snapshot) => {
                 listEl.innerHTML = "";
-                currentDefectsData = []; // Listeyi sıfırla
+                currentDefectsData = []; 
 
                 if (snapshot.empty) {
                     listEl.innerHTML = '<li style="text-align:center;">Bu uçak için henüz kayıt yok.</li>';
                     return;
                 }
 
+                // Verileri client tarafında (tarayıcıda) sıralayalım
+                // Böylece veritabanı indeksi istemez ama yine de yeni kayıt en üste gelir
+                let tempDocs = [];
                 snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    data.id = doc.id; // ID'yi objeye ekle
+                    let d = doc.data();
+                    d.id = doc.id;
+                    tempDocs.push(d);
+                });
+
+                // JavaScript ile sıralama (En yeni en üstte)
+                tempDocs.sort((a, b) => {
+                    if(!a.createdAt || !b.createdAt) return 0;
+                    return b.createdAt.seconds - a.createdAt.seconds;
+                });
+
+                tempDocs.forEach((data) => {
                     currentDefectsData.push(data);
                     renderDefectItem(data);
                 });
+
             }, (error) => {
                 console.error("Veri çekme hatası:", error);
-                if(error.code === 'failed-precondition') {
-                     // Index oluşturma hatası olabilir, console'a link düşer
-                     alert("Veritabanı indeks hatası. Konsolu kontrol ediniz (F12).");
-                } else {
-                    listEl.innerHTML = "Veriler alınamadı.";
-                }
+                listEl.innerHTML = "Veriler alınamadı: " + error.message;
             });
         }
 
