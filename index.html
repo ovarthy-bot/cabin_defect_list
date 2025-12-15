@@ -466,6 +466,156 @@
 
         // --- UÇAK YÖNETİMİ (KATEGORİ YERİNE) ---
 
+        async function exportToExcel() {
+    if (currentDefectsData.length === 0) {
+        alert("Aktarılacak veri bulunmamaktadır.");
+        return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Defect List');
+
+    // Sütun başlıklarını tanımla
+    worksheet.columns = [
+        { header: 'UÇAK', key: 'airplane', width: 15 },
+        { header: 'DEFECT', key: 'defect', width: 40 },
+        { header: 'LOCATION', key: 'location', width: 20 },
+        { header: 'NOTE', key: 'note', width: 30 },
+        { header: 'P/N', key: 'partNumber', width: 20 },
+        { header: 'M/H', key: 'manHours', width: 10 },
+        { header: 'RESİM', key: 'image', width: 20 }
+    ];
+
+    // Başlık satırını stillendir
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = { bold: true, size: 12 };
+    headerRow.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF4472C4' }
+    };
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+    headerRow.height = 25;
+
+    // Loading göstergesi
+    const exportBtn = document.querySelector('.export-button');
+    const originalText = exportBtn.innerText;
+    exportBtn.innerText = 'Excel hazırlanıyor...';
+    exportBtn.disabled = true;
+
+    try {
+        // Her defect için resmi yükle ve satıra ekle
+        for (let i = 0; i < currentDefectsData.length; i++) {
+            const data = currentDefectsData[i];
+            const rowIndex = i + 2; // +2 çünkü başlık 1. satırda, data 2. satırdan başlıyor
+
+            // Veriyi ekle
+            const row = worksheet.addRow({
+                airplane: data.airplane || '',
+                defect: data.defect || '',
+                location: data.location || '',
+                note: data.note || '',
+                partNumber: data.partNumber || '',
+                manHours: data.manHours || '',
+                image: data.imageUrl ? 'Resim Eklendi' : 'Resim Yok'
+            });
+
+            // Satır yüksekliğini ayarla
+            row.height = 80;
+            row.alignment = { vertical: 'middle', wrapText: true };
+
+            // Eğer resim varsa, Excel'e ekle
+            if (data.imageUrl) {
+                try {
+                    // Resmi base64'e çevir
+                    const base64Image = await fetchImageAsBase64(data.imageUrl);
+                    
+                    if (base64Image) {
+                        // Base64 string'den format prefix'ini çıkar
+                        const base64Data = base64Image.split(',')[1];
+                        
+                        // Excel'e resim ekle
+                        const imageId = workbook.addImage({
+                            base64: base64Data,
+                            extension: 'jpeg',
+                        });
+
+                        // Resmi hücreye yerleştir (G sütunu = 7. sütun = image kolonu)
+                        worksheet.addImage(imageId, {
+                            tl: { col: 6, row: rowIndex - 1 }, // Top-left köşe
+                            ext: { width: 100, height: 75 } // Resim boyutu
+                        });
+                    }
+                } catch (imgError) {
+                    console.warn(`Resim yüklenemedi (Satır ${rowIndex}):`, imgError);
+                    // Resim yüklenemese bile devam et
+                }
+            }
+
+            // İlerleme bilgisi (opsiyonel)
+            exportBtn.innerText = `Excel hazırlanıyor... ${i + 1}/${currentDefectsData.length}`;
+        }
+
+        // Tüm hücrelere border ekle
+        worksheet.eachRow((row, rowNumber) => {
+            row.eachCell((cell) => {
+                cell.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' }
+                };
+            });
+        });
+
+        // Excel dosyasını indir
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        
+        // Dosya adına tarih ve uçak bilgisi ekle
+        const airplane = document.getElementById('airplane-select').value || 'Tum_Defectler';
+        const date = new Date().toISOString().slice(0, 10);
+        a.download = `${airplane}_Defect_List_${date}.xlsx`;
+        
+        a.click();
+        window.URL.revokeObjectURL(url);
+
+        alert('Excel dosyası başarıyla oluşturuldu!');
+
+    } catch (error) {
+        console.error('Excel oluşturma hatası:', error);
+        alert('Excel oluştururken bir hata oluştu: ' + error.message);
+    } finally {
+        exportBtn.innerText = originalText;
+        exportBtn.disabled = false;
+    }
+}
+
+// Yardımcı fonksiyon: Firebase Storage URL'sini base64'e çevir
+async function fetchImageAsBase64(url) {
+    try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    } catch (error) {
+        console.error('Resim yükleme hatası:', error);
+        return null;
+    }
+}
+
+// Global scope'a ekle
+window.exportToExcel = exportToExcel;
+
         
 
         async function loadAirplanes() {
