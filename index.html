@@ -6,6 +6,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Uçak Defect Takip (Firebase)</title>
     <style>
+
+/* --- YENİ EKLENEN EV (HOME) BUTONU STİLİ --- */
+        .home-btn { 
+            position: fixed; 
+            top: 10px; 
+            left: 70px; /* Menü butonunun yanına gelmesi için boşluk */ 
+            font-size: 24px; 
+            cursor: pointer; 
+            background-color: #17a2b8; /* Ayırt edilmesi için Turkuaz renk */
+            color: white; 
+            padding: 5px 10px; 
+            border-radius: 4px; 
+            z-index: 1000; 
+            text-decoration: none; /* Link alt çizgisini kaldır */
+            transition: background-color 0.3s; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 30px; /* Menü butonuyla hizalı yükseklik */
+            line-height: 1;
+        }
+        .home-btn:hover { background-color: #138496; }
+        
         /* --- GENEL STİLLER (AYNEN KORUNDU VE GÜNCELLENDİ) --- */
         body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; display: flex; overflow-x: hidden; transition: background-color 0.3s, color 0.3s; }
         .sidebar { height: 100%; width: 0; position: fixed; top: 0; left: 0; background-color: #333; overflow-x: hidden; transition: 0.3s; padding-top: 60px; color: white; z-index: 1001; }
@@ -79,7 +102,7 @@
 
 <body>
     <div class="menu-btn" onclick="toggleSidebar()">☰</div>
-    
+    <a href="https://ovarthy-bot.github.io/navigasyon/" class="home-btn" title="Cabin Defect List">🏠</a>
     <div class="sidebar" id="sidebar">
         <span class="close-btn" onclick="toggleSidebar()">×</span>
         <div class="sidebar-content">
