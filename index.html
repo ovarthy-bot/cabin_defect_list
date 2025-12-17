@@ -257,37 +257,37 @@
         // --- UÇAK YÖNETİMİ (KATEGORİ YERİNE) ---
         
         async function loadAirplanes() {
-            // Firebase modülü yüklenene kadar bekle
-            if (!window.db) { setTimeout(loadAirplanes, 500); return; }
+    if (!window.db) { setTimeout(loadAirplanes, 500); return; }
 
-            const airplaneSelect = document.getElementById("airplane-select");
-            // Mevcut seçenekleri temizle ama ilkini tut
-            airplaneSelect.innerHTML = '<option value="" disabled selected>Uçak Seçiniz</option>';
-            
-            try {
-                const q = window.query(window.collection(window.db, "airplanes"), window.orderBy("name"));
-                const querySnapshot = await window.getDocs(q);
-                
-                querySnapshot.forEach((doc) => {
-                    const opt = document.createElement("option");
-                    opt.value = doc.data().name;
-                    opt.text = doc.data().name;
-                    opt.dataset.id = doc.id; // Silme işlemi için ID'yi sakla
-                    airplaneSelect.appendChild(opt);
-                });
-                
-                // Eğer localStorage'da son seçilen varsa onu seç
-                const lastPlane = localStorage.getItem("lastSelectedPlane");
-                if(lastPlane) {
-                    airplaneSelect.value = lastPlane;
-                    filterByAirplane();
-                }
-
-            } catch (error) {
-                console.error("Uçaklar yüklenirken hata:", error);
-                alert("Veritabanı bağlantısı kurulamadı. Firebase ayarlarını kontrol edin.");
-            }
+    const airplaneSelect = document.getElementById("airplane-select");
+    // Önce temizle, sonra varsayılan ve "Tüm Uçaklar" seçeneğini ekle
+    airplaneSelect.innerHTML = `
+        <option value="" disabled selected>Uçak Seçiniz</option>
+        <option value="ALL">--- TÜM UÇAKLAR ---</option>
+    `;
+    
+    try {
+        const q = window.query(window.collection(window.db, "airplanes"), window.orderBy("name"));
+        const querySnapshot = await window.getDocs(q);
+        
+        querySnapshot.forEach((doc) => {
+            const opt = document.createElement("option");
+            opt.value = doc.data().name;
+            opt.text = doc.data().name;
+            opt.dataset.id = doc.id; 
+            airplaneSelect.appendChild(opt);
+        });
+        
+        const lastPlane = localStorage.getItem("lastSelectedPlane");
+        if(lastPlane) {
+            airplaneSelect.value = lastPlane;
+            filterByAirplane();
         }
+
+    } catch (error) {
+        console.error("Uçaklar yüklenirken hata:", error);
+    }
+}
 
         async function addNewAirplane() {
             const planeName = prompt("Yeni eklenecek UÇAK ismini giriniz (Örn: TC-LGA):");
@@ -323,14 +323,19 @@
         }
 
         async function deleteSelectedAirplane() {
-            const select = document.getElementById("airplane-select");
-            const selectedPlane = select.value;
-            const selectedOption = select.options[select.selectedIndex];
-            
-            if (!selectedPlane) {
-                alert("Silmek için bir uçak seçmelisiniz.");
-                return;
-            }
+    const select = document.getElementById("airplane-select");
+    const selectedPlane = select.value;
+    
+    // TÜM UÇAKLAR seçiliyken silmeye izin verme
+    if (selectedPlane === "ALL") {
+        alert("'Tüm Uçaklar' listesi bir kayıt değil, bir görünüm modudur. Bunu silemezsiniz.");
+        return;
+    }
+
+    if (!selectedPlane) {
+        alert("Silmek için bir uçak seçmelisiniz.");
+        return;
+    }
 
             if (!confirm(`${selectedPlane} uçağını ve LİSTEDEN SİLMEK istediğinize emin misiniz? (Bu işlem sadece uçak ismini listeden kaldırır, defect kayıtları veritabanında kalır ama listede görünmez)`)) {
                 return;
