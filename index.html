@@ -260,7 +260,7 @@
     if (!window.db) { setTimeout(loadAirplanes, 500); return; }
 
     const airplaneSelect = document.getElementById("airplane-select");
-    // Önce temizle, sonra varsayılan ve "Tüm Uçaklar" seçeneğini ekle
+    // Önce temizle, sonra varsayılan ve "TÜM UÇAKLAR" seçeneğini ekle
     airplaneSelect.innerHTML = `
         <option value="" disabled selected>Uçak Seçiniz</option>
         <option value="ALL">--- TÜM UÇAKLAR ---</option>
@@ -283,7 +283,6 @@
             airplaneSelect.value = lastPlane;
             filterByAirplane();
         }
-
     } catch (error) {
         console.error("Uçaklar yüklenirken hata:", error);
     }
@@ -326,9 +325,8 @@
     const select = document.getElementById("airplane-select");
     const selectedPlane = select.value;
     
-    // TÜM UÇAKLAR seçiliyken silmeye izin verme
     if (selectedPlane === "ALL") {
-        alert("'Tüm Uçaklar' listesi bir kayıt değil, bir görünüm modudur. Bunu silemezsiniz.");
+        alert("Genel liste görünümü silinemez. Lütfen silmek istediğiniz uçağı tekil olarak seçin.");
         return;
     }
 
@@ -356,63 +354,64 @@
         }
 
         function filterByAirplane() {
-            const plane = document.getElementById("airplane-select").value;
-            if (!plane) return;
+    const plane = document.getElementById("airplane-select").value;
+    if (!plane) return;
 
-            localStorage.setItem("lastSelectedPlane", plane);
-            document.getElementById("list-header").innerText = `${plane} İçin Kayıtlar`;
+    localStorage.setItem("lastSelectedPlane", plane);
+    
+    let q;
+    if (plane === "ALL") {
+        document.getElementById("list-header").innerText = `Tüm Kayıtlı Defectler`;
+        // Filtreleme yapmadan tüm koleksiyonu getir
+        q = window.query(window.collection(window.db, "defects"));
+    } else {
+        document.getElementById("list-header").innerText = `${plane} İçin Kayıtlar`;
+        // Sadece seçili uçağa göre filtrele
+        q = window.query(
+            window.collection(window.db, "defects"), 
+            window.where("airplane", "==", plane)
+        );
+    }
 
-            // Önceki listener varsa kapat
-            if (unsubscribeDefects) {
-                unsubscribeDefects();
-            }
+    if (unsubscribeDefects) {
+        unsubscribeDefects();
+    }
 
-            // --- DEĞİŞİKLİK BURADA ---
-            // "orderBy" kısmını kaldırdık. Artık hata vermeyecek.
-            // Veriler karışık sırada gelebilir ama sistem çalışır.
-            const q = window.query(
-                window.collection(window.db, "defects"), 
-                window.where("airplane", "==", plane)
-            );
-            // -------------------------
+    const listEl = document.getElementById("defect-list");
+    listEl.innerHTML = '<li style="text-align:center;">Yükleniyor...</li>';
 
-            const listEl = document.getElementById("defect-list");
-            listEl.innerHTML = '<li style="text-align:center;">Yükleniyor...</li>';
+    unsubscribeDefects = window.onSnapshot(q, (snapshot) => {
+        listEl.innerHTML = "";
+        currentDefectsData = []; 
 
-            unsubscribeDefects = window.onSnapshot(q, (snapshot) => {
-                listEl.innerHTML = "";
-                currentDefectsData = []; 
-
-                if (snapshot.empty) {
-                    listEl.innerHTML = '<li style="text-align:center;">Bu uçak için henüz kayıt yok.</li>';
-                    return;
-                }
-
-                // Verileri client tarafında (tarayıcıda) sıralayalım
-                // Böylece veritabanı indeksi istemez ama yine de yeni kayıt en üste gelir
-                let tempDocs = [];
-                snapshot.forEach((doc) => {
-                    let d = doc.data();
-                    d.id = doc.id;
-                    tempDocs.push(d);
-                });
-
-                // JavaScript ile sıralama (En yeni en üstte)
-                tempDocs.sort((a, b) => {
-                    if(!a.createdAt || !b.createdAt) return 0;
-                    return b.createdAt.seconds - a.createdAt.seconds;
-                });
-
-                tempDocs.forEach((data) => {
-                    currentDefectsData.push(data);
-                    renderDefectItem(data);
-                });
-
-            }, (error) => {
-                console.error("Veri çekme hatası:", error);
-                listEl.innerHTML = "Veriler alınamadı: " + error.message;
-            });
+        if (snapshot.empty) {
+            listEl.innerHTML = '<li style="text-align:center;">Kayıt bulunamadı.</li>';
+            return;
         }
+
+        let tempDocs = [];
+        snapshot.forEach((doc) => {
+            let d = doc.data();
+            d.id = doc.id;
+            tempDocs.push(d);
+        });
+
+        // Tarihe göre sıralama (En yeni en üstte)
+        tempDocs.sort((a, b) => {
+            if(!a.createdAt || !b.createdAt) return 0;
+            return b.createdAt.seconds - a.createdAt.seconds;
+        });
+
+        tempDocs.forEach((data) => {
+            currentDefectsData.push(data);
+            renderDefectItem(data);
+        });
+
+    }, (error) => {
+        console.error("Veri çekme hatası:", error);
+        listEl.innerHTML = "Veriler alınamadı.";
+    });
+}
 
         function renderDefectItem(data) {
             const listEl = document.getElementById("defect-list");
