@@ -699,10 +699,12 @@
             filtered.forEach(data => renderDefectItem(data));
         }
 
-        function showSuggestions(val) {
-    if (suppressSuggestions) return;
-
+function showSuggestions(val) {
     const list = document.getElementById("suggestion-list");
+
+    // ENTER sonrası manuel kapatıldıysa tekrar açma
+    if (list.dataset.locked === "true") return;
+
     list.innerHTML = "";
     list.style.display = "none";
 
@@ -715,16 +717,22 @@
             const div = document.createElement("div");
             div.innerText = s;
             div.onclick = () => {
-                suppressSuggestions = true;
                 document.getElementById("defect").value = s;
                 list.style.display = "none";
+                list.dataset.locked = "true";
+
                 document.getElementById("location").focus();
-                setTimeout(() => suppressSuggestions = false, 200);
+
+                // Kilidi kısa süre sonra kaldır
+                setTimeout(() => {
+                    list.dataset.locked = "false";
+                }, 200);
             };
             list.appendChild(div);
         });
     }
 }
+
 
 
 // Mobil ve Masaüstü uyumlu Enter takibi (GÜNCELLENDİ)
@@ -734,17 +742,19 @@ document.getElementById("defect").addEventListener("keydown", function (e) {
 
         const list = document.getElementById("suggestion-list");
 
-        suppressSuggestions = true;
+        // Listeyi kilitle ve kapat
         list.style.display = "none";
+        list.dataset.locked = "true";
 
         this.blur();
 
         setTimeout(() => {
             document.getElementById("location").focus();
-            suppressSuggestions = false;
+            list.dataset.locked = "false";
         }, 150);
     }
 });
+
 
 
 
