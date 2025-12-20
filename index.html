@@ -726,23 +726,13 @@ document.getElementById("defect").addEventListener("keyup", function(event) {
         list.style.display = "none";
         
         // MOBİL İÇİN KRİTİK: Klavyeyi kapatmak ve odaktan çıkmak için 'blur' kullanılır
-        this.blur(); 
+        //this.blur(); 
         
         // Bir sonraki kutuya geçmek isterseniz:
         document.getElementById("location").focus();
     }
 });
 
-        // Defect inputunda Enter tuşuna basıldığında öneri listesini kapatır
-document.getElementById("defect").addEventListener("keydown", function(event) {
-    if (event.key === "Enter") {
-        const list = document.getElementById("suggestion-list");
-        list.style.display = "none";
-        
-        // Opsiyonel: Enter'a basıldığında bir sonraki kutuya (Location) odaklanması için:
-        document.getElementById("location").focus();
-    }
-});
 
         // Ekranda herhangi bir yere dokunulduğunda öneri listesini kapatır
 document.addEventListener('click', function(event) {
