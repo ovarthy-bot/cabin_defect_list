@@ -336,34 +336,67 @@
     const select = document.getElementById("airplane-select");
     const selectedPlane = select.value;
     
-    if (selectedPlane === "ALL") {
-        alert("Genel liste görünümü silinemez. Lütfen silmek istediğiniz uçağı tekil olarak seçin.");
+    // 1. Kontrol: Seçim yapılmamışsa veya "ALL" seçiliyse işlemi durdur
+    if (!selectedPlane || selectedPlane === "ALL") {
+        alert("Lütfen silmek istediğiniz uçağı tekil olarak seçin.");
         return;
     }
 
-    if (!selectedPlane) {
-        alert("Silmek için bir uçak seçmelisiniz.");
-        return;
+    // Seçili uçağın Firestore ID'sine erişim
+    const selectedOption = select.options[select.selectedIndex];
+    const planeDocId = selectedOption.dataset.id;
+
+    const confirmMessage = `${selectedPlane} uçağını, bu uçağa ait TÜM DEFECT KAYITLARINI ve RESİMLERİ kalıcı olarak silmek istediğinize emin misiniz?\n\nBU İŞLEM GERİ ALINAMAZ!`;
+    
+    if (!confirm(confirmMessage)) return;
+
+    try {
+        // Arayüzde işlem başladığını göster
+        document.getElementById("defect-list").innerHTML = '<li style="text-align:center;">Bağlı kayıtlar temizleniyor, lütfen bekleyin...</li>';
+
+        // 2. AŞAMA: Uçağa ait tüm defectleri bul
+        const q = window.query(
+            window.collection(window.db, "defects"), 
+            window.where("airplane", "==", selectedPlane)
+        );
+        const querySnapshot = await window.getDocs(q);
+
+        // 3. AŞAMA: Her bir defect kaydını ve resmini tek tek sil
+        const deletePromises = [];
+        
+        querySnapshot.forEach((defectDoc) => {
+            const data = defectDoc.data();
+            const defectId = defectDoc.id;
+
+            // Varsa resmi Storage'dan sil
+            if (data.imageUrl && data.imageUrl.startsWith("https://firebasestorage")) {
+                const imageRef = window.ref(window.storage, data.imageUrl);
+                deletePromises.push(window.deleteObject(imageRef).catch(e => console.warn("Resim silinemedi:", e)));
+            }
+
+            // Defect dokümanını Firestore'dan sil
+            deletePromises.push(window.deleteDoc(window.doc(window.db, "defects", defectId)));
+        });
+
+        // Tüm defect ve resim silme işlemlerinin bitmesini bekle
+        await Promise.all(deletePromises);
+
+        // 4. AŞAMA: Uçağın kendisini "airplanes" koleksiyonundan sil
+        await window.deleteDoc(window.doc(window.db, "airplanes", planeDocId));
+
+        alert(`${selectedPlane} uçağı ve ilgili tüm veriler başarıyla temizlendi.`);
+
+        // 5. AŞAMA: Arayüzü temizle ve listeyi yenile
+        select.value = "";
+        localStorage.removeItem("lastSelectedPlane");
+        await loadAirplanes(); 
+        document.getElementById("defect-list").innerHTML = ""; 
+
+    } catch (e) {
+        console.error("Silme işlemi sırasında hata:", e);
+        alert("İşlem sırasında bir hata oluştu: " + e.message);
     }
-
-            if (!confirm(`${selectedPlane} uçağını ve LİSTEDEN SİLMEK istediğinize emin misiniz? (Bu işlem sadece uçak ismini listeden kaldırır, defect kayıtları veritabanında kalır ama listede görünmez)`)) {
-                return;
-            }
-
-            try {
-                const selectedOption = select.options[select.selectedIndex];
-                const id = selectedOption.dataset.id;
-                await window.deleteDoc(window.doc(window.db, "airplanes", id));
-                alert(`${selectedPlane} silindi.`);
-                select.value = "";
-                localStorage.removeItem("lastSelectedPlane");
-                loadAirplanes();
-                document.getElementById("defect-list").innerHTML = ""; // Listeyi temizle
-            } catch (e) {
-                console.error("Silme hatası:", e);
-                alert("Silinirken hata oluştu.");
-            }
-        }
+}
 
         function filterByAirplane() {
     const plane = document.getElementById("airplane-select").value;
