@@ -683,28 +683,34 @@
             }
         }
 
-        async function resizeImageFromUrl(imageUrl, scale) {
-    if (scale === 1) return imageUrl; // Değişiklik yoksa direkt linki dön
-
+async function resizeImageFromUrl(imageUrl, scale) {
     return new Promise((resolve, reject) => {
         const img = new Image();
-        img.crossOrigin = "Anonymous"; // CORS hatasını önlemek için şart
+        img.crossOrigin = "Anonymous"; // CORS için kritik
         img.src = imageUrl;
+        
         img.onload = () => {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             
-            const newWidth = img.width * scale;
-            const newHeight = img.height * scale;
+            // Orijinal boyutları alıyoruz
+            let targetWidth = img.width * scale;
+            let targetHeight = img.height * scale;
             
-            canvas.width = newWidth;
-            canvas.height = newHeight;
+            canvas.width = targetWidth;
+            canvas.height = targetHeight;
             
-            ctx.drawImage(img, 0, 0, newWidth, newHeight);
-            // Küçültülmüş resmi Base64 formatında döndürür
-            resolve(canvas.toDataURL('image/jpeg', 0.7)); 
+            ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+            
+            // Her zaman Base64 döndürür (Kalite 1 olsa bile)
+            const base64 = canvas.toDataURL('image/jpeg', 0.8);
+            resolve(base64);
         };
-        img.onerror = (e) => reject(e);
+        
+        img.onerror = (e) => {
+            console.error("Resim yükleme hatası (CORS veya Link bozuk):", imageUrl);
+            reject(e);
+        };
     });
 }
 
@@ -718,16 +724,16 @@ async function exportToExcel() {
     }
 
     const exportBtn = document.querySelector('.export-button');
-    const exportScale = parseFloat(document.getElementById('export-scale').value); // Seçilen kaliteyi al
+    const exportScale = parseFloat(document.getElementById('export-scale').value);
     const originalText = exportBtn.innerText;
+    
     exportBtn.disabled = true;
-    exportBtn.innerText = "Resimler İşleniyor...";
+    exportBtn.innerText = "Resimler Hazırlanıyor...";
 
     try {
         const workbook = new ExcelJS.Workbook();
-        const sheet = workbook.addWorksheet("Defects");
+        const sheet = workbook.addWorksheet("Defect Raporu");
         
-        // Sütun ayarları
         sheet.columns = [
             { header: "UÇAK", key: "airplane", width: 15 },
             { header: "DEFECT", key: "defect", width: 35 },
@@ -735,46 +741,68 @@ async function exportToExcel() {
             { header: "NOTE", key: "note", width: 25 },
             { header: "P/N", key: "partNumber", width: 15 },
             { header: "M/H", key: "manHours", width: 10 },
-            { header: "RESİM", key: "image", width: 25 }
+            { header: "RESİM", key: "image", width: 30 }
         ];
+
+        // Başlık stilini kalın yap
+        sheet.getRow(1).font = { bold: true };
 
         for (let i = 0; i < currentDefectsData.length; i++) {
             const d = currentDefectsData[i];
             const rowNumber = i + 2;
-            const row = sheet.addRow(d);
-            row.height = 85;
+            
+            // Satırı ekle
+            const row = sheet.addRow({
+                airplane: d.airplane || "",
+                defect: d.defect || "",
+                location: d.location || "",
+                note: d.note || "",
+                partNumber: d.partNumber || "",
+                manHours: d.manHours || ""
+            });
+            
+            row.height = 95; // Resim için satır yüksekliği
 
-            if (d.imageUrl) {
+            const imgUrl = d.imageUrl || d.image;
+
+            if (imgUrl) {
                 try {
-                    // SEÇİLEN KALİTEYE GÖRE RESMİ YERİNDE (ON-THE-FLY) KÜÇÜLT
-                    const resizedBase64 = await resizeImageFromUrl(d.imageUrl, exportScale);
+                    // Resim URL'sini seçilen kaliteye göre Base64'e çevir
+                    const base64Data = await resizeImageFromUrl(imgUrl, exportScale);
                     
+                    // ExcelJS'e resmi ekle (Sadece data kısmını alıyoruz)
                     const imageId = workbook.addImage({
-                        base64: resizedBase64,
+                        base64: base64Data,
                         extension: 'jpeg',
                     });
 
                     sheet.addImage(imageId, {
                         tl: { col: 6, row: rowNumber - 1 },
-                        ext: { width: 120, height: 110 }
+                        ext: { width: 180, height: 120 },
+                        editAs: 'oneCell'
                     });
                 } catch (err) {
-                    console.error("Resim işleme hatası:", err);
-                    row.getCell(7).value = "Resim eklenemedi";
+                    console.warn("Satır " + rowNumber + " için resim işlenemedi:", err);
+                    row.getCell(7).value = "Resim Yüklenemedi";
                 }
             }
         }
 
+        // Dosyayı Oluştur ve İndir
         const buffer = await workbook.xlsx.writeBuffer();
         const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
+        const fileName = `Defect_Raporu_${new Date().toISOString().split('T')[0]}.xlsx`;
+        
         a.href = url;
-        a.download = `Defect_Raporu_${new Date().getTime()}.xlsx`;
+        a.download = fileName;
         a.click();
+        URL.revokeObjectURL(url);
         
     } catch (error) {
-        alert("Hata: " + error.message);
+        console.error("Excel Hatası:", error);
+        alert("Excel oluşturulurken bir hata oluştu: " + error.message);
     } finally {
         exportBtn.disabled = false;
         exportBtn.innerText = originalText;
