@@ -99,9 +99,28 @@
         
         /* --- GENEL STİLLER (AYNEN KORUNDU VE GÜNCELLENDİ) --- */
         body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; display: flex; overflow-x: hidden; transition: background-color 0.3s, color 0.3s; }
-        .sidebar { height: 100%; width: 0; position: fixed; top: 0; left: 0; background-color: #333; overflow-x: hidden; transition: 0.3s; padding-top: 60px; color: white; z-index: 1001; }
+        .sidebar { 
+    height: 100%; 
+    width: 0; 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    background-color: #333; 
+    overflow-x: hidden; 
+    transition: 0.3s; 
+    padding-top: 100px; /* 60px'den 100px'e çıkarıldı (İstediğiniz kadar artırabilirsiniz) */
+    color: white; 
+    z-index: 1001; 
+}
         .sidebar.open { width: 250px; }
-        .sidebar .close-btn { position: absolute; top: 10px; right: 25px; font-size: 36px; cursor: pointer; }
+        /* --- KAPATMA BUTONU KONUMU GÜNCELLENDİ --- */
+.sidebar .close-btn { 
+    position: absolute; 
+    top: 40px; /* 10px'den 40px'e çekildi */
+    right: 25px; 
+    font-size: 36px; 
+    cursor: pointer; 
+}
         .sidebar-content { padding: 20px; }
         .sidebar-content label { display: block; margin-bottom: 10px; font-weight: bold; }
         .sidebar-content input, .sidebar-content select, .sidebar-content button { width: 100%; padding: 8px; margin-bottom: 20px; border: none; border-radius: 4px; cursor: pointer; }
