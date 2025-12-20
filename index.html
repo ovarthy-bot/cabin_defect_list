@@ -67,21 +67,33 @@
 }
 
 /* Mobil cihazlar için optimize */
+/* Mobil cihazlar için optimize edilmiş buton yerleşimi */
 @media (max-width: 600px) {
     .menu-btn {
         top: 15px;
         left: 10px;
         width: 45px;
         height: 45px;
-        font-size: 22px;
+        font-size: 20px;
     }
     
     .home-btn {
-        top: 70px; /* (15px + 45px + 10px boşluk) */
-        left: 10px;
+        top: 15px;      /* Menü butonuyla aynı hizaya (yukarı) çektik */
+        left: 65px;     /* Menü butonunun genişliği + boşluk (10+45+10) */
         width: 45px;
         height: 45px;
-        font-size: 22px;
+        font-size: 20px;
+    }
+
+    /* Üstten butonların üstüne binmemesi için konteynere biraz pay verelim */
+    .container { 
+        margin-top: 75px; 
+        padding: 10px; 
+    }
+    
+    .container.sidebar-open { 
+        margin-left: 0; 
+        transform: translateX(250px); 
     }
 }
         
