@@ -718,18 +718,22 @@
             }
         }
 
-        // Mobil ve Masaüstü uyumlu Enter takibi
-document.getElementById("defect").addEventListener("keyup", function(event) {
-    // Hem 'Enter' metnini hem de 13 olan tuş kodunu kontrol ediyoruz (Mobil uyum için)
+// Mobil ve Masaüstü uyumlu Enter takibi (GÜNCELLENDİ)
+document.getElementById("defect").addEventListener("keydown", function(event) {
+    // Hem 'Enter' metnini hem de 13 olan tuş kodunu kontrol ediyoruz
     if (event.key === "Enter" || event.keyCode === 13) {
         const list = document.getElementById("suggestion-list");
+        
+        // 1. Öneri listesini hemen gizle
         list.style.display = "none";
         
-        // MOBİL İÇİN KRİTİK: Klavyeyi kapatmak ve odaktan çıkmak için 'blur' kullanılır
-        //this.blur(); 
+        // 2. Mobilde klavyeyi kapatmak ve listenin tekrar açılmasını önlemek için odaktan çık
+        this.blur(); 
         
-        // Bir sonraki kutuya geçmek isterseniz:
-        document.getElementById("location").focus();
+        // 3. Kısa bir süre bekleyip (mobil klavye kapanma animasyonu için) bir sonraki kutuya odaklan
+        setTimeout(() => {
+            document.getElementById("location").focus();
+        }, 100);
     }
 });
 
