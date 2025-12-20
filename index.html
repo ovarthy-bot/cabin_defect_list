@@ -350,6 +350,7 @@
             }
 
             try {
+                const selectedOption = select.options[select.selectedIndex];
                 const id = selectedOption.dataset.id;
                 await window.deleteDoc(window.doc(window.db, "airplanes", id));
                 alert(`${selectedPlane} silindi.`);
