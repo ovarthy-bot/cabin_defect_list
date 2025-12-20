@@ -718,6 +718,21 @@
             }
         }
 
+        // Mobil ve Masaüstü uyumlu Enter takibi
+document.getElementById("defect").addEventListener("keyup", function(event) {
+    // Hem 'Enter' metnini hem de 13 olan tuş kodunu kontrol ediyoruz (Mobil uyum için)
+    if (event.key === "Enter" || event.keyCode === 13) {
+        const list = document.getElementById("suggestion-list");
+        list.style.display = "none";
+        
+        // MOBİL İÇİN KRİTİK: Klavyeyi kapatmak ve odaktan çıkmak için 'blur' kullanılır
+        this.blur(); 
+        
+        // Bir sonraki kutuya geçmek isterseniz:
+        document.getElementById("location").focus();
+    }
+});
+
         // Defect inputunda Enter tuşuna basıldığında öneri listesini kapatır
 document.getElementById("defect").addEventListener("keydown", function(event) {
     if (event.key === "Enter") {
@@ -725,7 +740,7 @@ document.getElementById("defect").addEventListener("keydown", function(event) {
         list.style.display = "none";
         
         // Opsiyonel: Enter'a basıldığında bir sonraki kutuya (Location) odaklanması için:
-        // document.getElementById("location").focus();
+        document.getElementById("location").focus();
     }
 });
 
