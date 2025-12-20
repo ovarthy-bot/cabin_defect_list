@@ -7,6 +7,9 @@
     <title>Uçak Defect Takip (Firebase)</title>
     <style>
 
+        let suppressSuggestions = false;
+
+
 /* --- YENİ EKLENEN EV (HOME) BUTONU STİLİ --- */
         .home-btn { 
             position: fixed; 
@@ -697,45 +700,52 @@
         }
 
         function showSuggestions(val) {
-            const list = document.getElementById("suggestion-list");
-            list.innerHTML = "";
-            list.style.display = "none";
-            if (!val.trim()) return;
+    if (suppressSuggestions) return;
 
-            const matches = suggestions.filter(s => s.includes(val));
-            if (matches.length > 0) {
-                list.style.display = "block";
-                matches.forEach(s => {
-                    const div = document.createElement("div");
-                    div.innerText = s;
-                    div.onclick = () => {
-                        document.getElementById("defect").value = s;
-                        list.style.display = "none";
-                        document.getElementById("location").focus();
-                    };
-                    list.appendChild(div);
-                });
-            }
-        }
+    const list = document.getElementById("suggestion-list");
+    list.innerHTML = "";
+    list.style.display = "none";
+
+    if (!val.trim()) return;
+
+    const matches = suggestions.filter(s => s.includes(val));
+    if (matches.length > 0) {
+        list.style.display = "block";
+        matches.forEach(s => {
+            const div = document.createElement("div");
+            div.innerText = s;
+            div.onclick = () => {
+                suppressSuggestions = true;
+                document.getElementById("defect").value = s;
+                list.style.display = "none";
+                document.getElementById("location").focus();
+                setTimeout(() => suppressSuggestions = false, 200);
+            };
+            list.appendChild(div);
+        });
+    }
+}
+
 
 // Mobil ve Masaüstü uyumlu Enter takibi (GÜNCELLENDİ)
-document.getElementById("defect").addEventListener("keydown", function(event) {
-    // Hem 'Enter' metnini hem de 13 olan tuş kodunu kontrol ediyoruz
-    if (event.key === "Enter" || event.keyCode === 13) {
+document.getElementById("defect").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+        e.preventDefault();
+
         const list = document.getElementById("suggestion-list");
-        
-        // 1. Öneri listesini hemen gizle
+
+        suppressSuggestions = true;
         list.style.display = "none";
-        
-        // 2. Mobilde klavyeyi kapatmak ve listenin tekrar açılmasını önlemek için odaktan çık
-        this.blur(); 
-        
-        // 3. Kısa bir süre bekleyip (mobil klavye kapanma animasyonu için) bir sonraki kutuya odaklan
+
+        this.blur();
+
         setTimeout(() => {
             document.getElementById("location").focus();
-        }, 100);
+            suppressSuggestions = false;
+        }, 150);
     }
 });
+
 
 
         // Ekranda herhangi bir yere dokunulduğunda öneri listesini kapatır
@@ -889,6 +899,30 @@ async function exportToExcel() {
                 document.body.classList.remove("dark-theme");
             }
         }
+
+        const focusableInputs = Array.from(
+    document.querySelectorAll(
+        '.input-section input:not([type="file"])'
+    )
+);
+
+focusableInputs.forEach((input, index) => {
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+
+            const next = focusableInputs[index + 1];
+            if (next) {
+                input.blur(); // mobil klavye için kritik
+                setTimeout(() => next.focus(), 50);
+            }
+        }
+    });
+});
+
+
+
+        
     </script>
 </body>
 </html>
