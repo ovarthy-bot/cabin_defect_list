@@ -14,22 +14,26 @@
         .home-btn { 
     position: fixed; 
     top: 10px; 
-    left: 70px; 
-    font-size: 20px; /* İkon boyutunu biraz dengeledik */
+    left: 60px; /* Menü butonundan hemen sonra başlar */ 
+    font-size: 20px; 
     cursor: pointer; 
     background-color: #17a2b8; 
     color: white; 
-    border-radius: 4px; 
+    border-radius: 6px; 
     z-index: 1000; 
     text-decoration: none; 
     display: flex;
     align-items: center;
     justify-content: center;
-    /* Sabit kare boyut vererek küçülmeyi engelledik */
-    width: 38px; 
-    height: 38px; 
-    transition: background-color 0.3s;
+    /* Mobilde kolay tıklama için standart buton boyutu (44px) */
+    width: 44px; 
+    height: 44px; 
+    transition: background-color 0.3s, transform 0.2s; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
+.home-btn:active { transform: scale(0.95); }
+
+        
         .home-btn:hover { background-color: #138496; }
         
         /* --- GENEL STİLLER (AYNEN KORUNDU VE GÜNCELLENDİ) --- */
@@ -910,47 +914,53 @@ async function exportToExcel() {
             }
         }
 
-// --- TÜM TEXTBOX'LAR İÇİN TEKİL VE STABİL ENTER YÖNETİMİ ---
-const inputIds = ["defect", "location", "note", "partNumber", "manHours"];
 
-inputIds.forEach((id, index) => {
+// --- ÖNERİ LİSTESİ VE TEXTBOX GEÇİŞ YÖNETİMİ ---
+const defectInput = document.getElementById("defect");
+const suggestionList = document.getElementById("suggestion-list");
+const allInputs = ["defect", "location", "note", "partNumber", "manHours"];
+
+// 1. Kutudan çıkınca listeyi gizle (Blur)
+defectInput.addEventListener("blur", function() {
+    // Kısa bir gecikme ekliyoruz ki listedeki bir maddeye tıklandığında 
+    // liste hemen kapanıp tıklamayı iptal etmesin.
+    setTimeout(() => {
+        suggestionList.style.display = "none";
+    }, 200);
+});
+
+// 2. Kutuya odaklanınca (eğer yazı varsa) listeyi tekrar göster (Focus)
+defectInput.addEventListener("focus", function() {
+    if (this.value.trim() !== "") {
+        showSuggestions(this.value);
+    }
+});
+
+// 3. Tüm textboxlar için Enter ile bir sonrakine geçiş
+allInputs.forEach((id, index) => {
     const inputEl = document.getElementById(id);
-    
+    if (!inputEl) return;
+
     inputEl.addEventListener("keydown", function(e) {
         if (e.key === "Enter" || e.keyCode === 13) {
-            e.preventDefault(); // Varsayılan form hareketini durdur
+            e.preventDefault();
 
-            // Eğer Defect kutusundaysak öneri listesini kesin kapat
+            // Eğer defect kutusundaysak listeyi hemen kapat
             if (id === "defect") {
-                const list = document.getElementById("suggestion-list");
-                list.style.display = "none";
-                list.dataset.locked = "true"; // Tekrar açılmasını engelle
+                suggestionList.style.display = "none";
             }
 
-            const nextId = inputIds[index + 1];
+            const nextId = allInputs[index + 1];
             if (nextId) {
                 const nextEl = document.getElementById(nextId);
-                this.blur(); // Mobilde klavyeyi/odağı tazele
-                
-                setTimeout(() => {
-                    nextEl.focus();
-                    // Kilidi aç ki tekrar yazmaya başlanırsa öneri gelsin
-                    if (id === "defect") {
-                        document.getElementById("suggestion-list").dataset.locked = "false";
-                    }
-                }, 100);
+                this.blur(); // Mevcut odağı bırak (mobil klavye yönetimi için)
+                setTimeout(() => nextEl.focus(), 100);
             } else {
-                this.blur(); // Son kutuda klavyeyi kapat
+                this.blur(); // Son kutu ise klavyeyi kapat
             }
         }
     });
 });
-
-// Öneri Listesi Tıklama Fonksiyonu Güncellemesi
-function updateSuggestionClick() {
-    // Bu kısım zaten showSuggestions içinde inline var, 
-    // ancak odağın kayması için 'location'a focus() eklendiğinden emin olun.
-}
 
 
 
