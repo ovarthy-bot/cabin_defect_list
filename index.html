@@ -12,24 +12,24 @@
 
 /* --- YENİ EKLENEN EV (HOME) BUTONU STİLİ --- */
         .home-btn { 
-            position: fixed; 
-            top: 10px; 
-            left: 70px; /* Menü butonunun yanına gelmesi için boşluk */ 
-            font-size: 24px; 
-            cursor: pointer; 
-            background-color: #17a2b8; /* Ayırt edilmesi için Turkuaz renk */
-            color: white; 
-            padding: 5px 10px; 
-            border-radius: 4px; 
-            z-index: 1000; 
-            text-decoration: none; /* Link alt çizgisini kaldır */
-            transition: background-color 0.3s; 
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 30px; /* Menü butonuyla hizalı yükseklik */
-            line-height: 1;
-        }
+    position: fixed; 
+    top: 10px; 
+    left: 70px; 
+    font-size: 20px; /* İkon boyutunu biraz dengeledik */
+    cursor: pointer; 
+    background-color: #17a2b8; 
+    color: white; 
+    border-radius: 4px; 
+    z-index: 1000; 
+    text-decoration: none; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Sabit kare boyut vererek küçülmeyi engelledik */
+    width: 38px; 
+    height: 38px; 
+    transition: background-color 0.3s;
+}
         .home-btn:hover { background-color: #138496; }
         
         /* --- GENEL STİLLER (AYNEN KORUNDU VE GÜNCELLENDİ) --- */
@@ -910,25 +910,47 @@ async function exportToExcel() {
             }
         }
 
-        const focusableInputs = Array.from(
-    document.querySelectorAll(
-        '.input-section input:not([type="file"])'
-    )
-);
+// --- TÜM TEXTBOX'LAR İÇİN TEKİL VE STABİL ENTER YÖNETİMİ ---
+const inputIds = ["defect", "location", "note", "partNumber", "manHours"];
 
-focusableInputs.forEach((input, index) => {
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
+inputIds.forEach((id, index) => {
+    const inputEl = document.getElementById(id);
+    
+    inputEl.addEventListener("keydown", function(e) {
+        if (e.key === "Enter" || e.keyCode === 13) {
+            e.preventDefault(); // Varsayılan form hareketini durdur
 
-            const next = focusableInputs[index + 1];
-            if (next) {
-                input.blur(); // mobil klavye için kritik
-                setTimeout(() => next.focus(), 50);
+            // Eğer Defect kutusundaysak öneri listesini kesin kapat
+            if (id === "defect") {
+                const list = document.getElementById("suggestion-list");
+                list.style.display = "none";
+                list.dataset.locked = "true"; // Tekrar açılmasını engelle
+            }
+
+            const nextId = inputIds[index + 1];
+            if (nextId) {
+                const nextEl = document.getElementById(nextId);
+                this.blur(); // Mobilde klavyeyi/odağı tazele
+                
+                setTimeout(() => {
+                    nextEl.focus();
+                    // Kilidi aç ki tekrar yazmaya başlanırsa öneri gelsin
+                    if (id === "defect") {
+                        document.getElementById("suggestion-list").dataset.locked = "false";
+                    }
+                }, 100);
+            } else {
+                this.blur(); // Son kutuda klavyeyi kapat
             }
         }
     });
 });
+
+// Öneri Listesi Tıklama Fonksiyonu Güncellemesi
+function updateSuggestionClick() {
+    // Bu kısım zaten showSuggestions içinde inline var, 
+    // ancak odağın kayması için 'location'a focus() eklendiğinden emin olun.
+}
 
 
 
