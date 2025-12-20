@@ -11,46 +11,77 @@
 
 
 /* --- EV (HOME) BUTONU STİLİ - GÜNCELLENDİ --- */
-.home-btn { 
+/* --- MENÜ BUTONU STİLİ - GÜNCELLENDİ --- */
+.menu-btn { 
     position: fixed; 
-    top: 20px; /* Üstten mesafe */
-    right: 20px; /* Sağdan mesafe (ekranın sağ üst köşesi) */
-    font-size: 28px; 
+    top: 25px; 
+    left: 15px; 
+    font-size: 24px; 
     cursor: pointer; 
-    background-color: #17a2b8; 
+    background-color: #007bff; 
     color: white; 
-    width: 70px; /* Daha büyük */
-    height: 70px; /* Daha büyük */
+    width: 50px;
+    height: 50px; 
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%; 
-    z-index: 2000; 
+    z-index: 2001; /* EV butonundan daha üstte */
+    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+    border: 2px solid white;
+    transition: transform 0.2s;
+}
+
+.menu-btn:active { transform: scale(0.9); }
+
+/* --- EV (HOME) BUTONU STİLİ - GÜNCELLENDİ --- */
+.home-btn { 
+    position: fixed; 
+    top: 85px; /* Menü butonunun hemen altı (25px + 50px + 10px boşluk) */
+    left: 15px; /* Menü butonuyla aynı hizada */
+    font-size: 24px; 
+    cursor: pointer; 
+    background-color: #17a2b8; 
+    color: white; 
+    width: 50px; 
+    height: 50px; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%; 
+    z-index: 2000; /* Menü butonundan daha altta */
     text-decoration: none; 
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4); /* Daha belirgin gölge */
-    border: 3px solid white; /* Daha kalın çerçeve */
-    transition: all 0.3s ease; /* Daha yumuşak geçiş */
-    opacity: 0.95; /* Hafif şeffaflık */
+    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+    border: 2px solid white;
+    transition: all 0.3s ease;
 }
 
 .home-btn:hover { 
     background-color: #138496; 
-    transform: scale(1.1); /* Hover'da büyüme efekti */
-    box-shadow: 0 6px 16px rgba(0,0,0,0.5); /* Hover'da daha belirgin gölge */
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
 }
 
 .home-btn:active { 
-    transform: scale(0.95); /* Tıklama hissi */
+    transform: scale(0.95);
 }
 
 /* Mobil cihazlar için optimize */
 @media (max-width: 600px) {
-    .home-btn {
-        width: 60px;
-        height: 60px;
-        font-size: 24px;
+    .menu-btn {
         top: 15px;
-        right: 15px;
+        left: 10px;
+        width: 45px;
+        height: 45px;
+        font-size: 22px;
+    }
+    
+    .home-btn {
+        top: 70px; /* (15px + 45px + 10px boşluk) */
+        left: 10px;
+        width: 45px;
+        height: 45px;
+        font-size: 22px;
     }
 }
         
