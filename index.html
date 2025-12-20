@@ -10,31 +10,49 @@
         let suppressSuggestions = false;
 
 
-/* --- YENİ EKLENEN EV (HOME) BUTONU STİLİ --- */
-       .home-btn { 
+/* --- EV (HOME) BUTONU STİLİ - GÜNCELLENDİ --- */
+.home-btn { 
     position: fixed; 
-    top: 25px; 
-    left: 80px; /* Menü butonuyla arasında net boşluk bırakıldı */
-    font-size: 22px; 
+    top: 20px; /* Üstten mesafe */
+    right: 20px; /* Sağdan mesafe (ekranın sağ üst köşesi) */
+    font-size: 28px; 
     cursor: pointer; 
     background-color: #17a2b8; 
     color: white; 
-    width: 50px; 
-    height: 50px; 
+    width: 70px; /* Daha büyük */
+    height: 70px; /* Daha büyük */
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%; 
     z-index: 2000; 
     text-decoration: none; 
-    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
-    border: 2px solid white;
-    transition: transform 0.2s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4); /* Daha belirgin gölge */
+    border: 3px solid white; /* Daha kalın çerçeve */
+    transition: all 0.3s ease; /* Daha yumuşak geçiş */
+    opacity: 0.95; /* Hafif şeffaflık */
 }
-.home-btn:active { transform: scale(0.9); } /* Tıklama hissi verir */
 
-        
-        .home-btn:hover { background-color: #138496; }
+.home-btn:hover { 
+    background-color: #138496; 
+    transform: scale(1.1); /* Hover'da büyüme efekti */
+    box-shadow: 0 6px 16px rgba(0,0,0,0.5); /* Hover'da daha belirgin gölge */
+}
+
+.home-btn:active { 
+    transform: scale(0.95); /* Tıklama hissi */
+}
+
+/* Mobil cihazlar için optimize */
+@media (max-width: 600px) {
+    .home-btn {
+        width: 60px;
+        height: 60px;
+        font-size: 24px;
+        top: 15px;
+        right: 15px;
+    }
+}
         
         /* --- GENEL STİLLER (AYNEN KORUNDU VE GÜNCELLENDİ) --- */
         body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; display: flex; overflow-x: hidden; transition: background-color 0.3s, color 0.3s; }
