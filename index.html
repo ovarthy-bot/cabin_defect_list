@@ -35,6 +35,16 @@
             background-color: #138496;
         }
 
+        /* CSS bölümüne ekleyin (satır ~117 civarı) */
+.airplane-btn.edit {
+    background-color: #ffc107;
+    color: black;
+}
+
+.airplane-btn.edit:hover {
+    background-color: #e0a800;
+}
+
         /* --- GENEL STİLLER (AYNEN KORUNDU VE GÜNCELLENDİ) --- */
         body {
             font-family: Arial, sans-serif;
@@ -436,16 +446,19 @@
     <div class="email-info">ovar@thy.com</div>
 
     <div class="container" id="main-container">
-        <div class="input-section">
-            <label for="airplane-select">UÇAK SEÇİMİ (FİLTRE):</label>
-            <div class="airplane-management">
-                <select id="airplane-select" onchange="filterByAirplane()">
-                    <option value="" disabled selected>Uçak Seçiniz veya Ekleyiniz</option>
-                </select>
-                <button class="airplane-btn" onclick="addNewAirplane()" title="Yeni Uçak Ekle">+</button>
-                <button class="airplane-btn delete" onclick="deleteSelectedAirplane()"
-                    title="Seçili Uçağı Sil">-</button>
-            </div>
+<!-- Değiştirilmiş HTML bölümü (satır 164-175 arası) -->
+<div class="input-section">
+    <!-- Bu kısmı güncelleyin -->
+    <label for="airplane-select">UÇAK SEÇİMİ (FİLTRE):</label>
+    <div class="airplane-management">
+        <select id="airplane-select" onchange="filterByAirplane()">
+            <option value="" disabled selected>Uçak Seçiniz veya Ekleyiniz</option>
+            <!-- Dinamik olarak yüklenecek -->
+        </select>
+        <button class="airplane-btn" onclick="addNewAirplane()" title="Yeni Uçak Ekle">+</button>
+        <button class="airplane-btn edit" onclick="editSelectedAirplane()" title="Seçili Uçağı Düzenle">✏️</button>
+        <button class="airplane-btn delete" onclick="deleteSelectedAirplane()" title="Seçili Uçağı Sil">-</button>
+    </div>
 
             <label for="defect">DEFECT:</label>
             <div class="shortcut-buttons">
@@ -882,6 +895,139 @@
             listEl.appendChild(li);
         }
 
+// JavaScript bölümüne bu fonksiyonu ekleyin (loadAirplanes fonksiyonundan sonra)
+
+async function editSelectedAirplane() {
+    const select = document.getElementById("airplane-select");
+    const selectedValue = select.value;
+    const selectedOption = select.options[select.selectedIndex];
+    const id = selectedOption.dataset.id;
+
+    if (!selectedValue || selectedValue === "ALL") {
+        alert("Düzenlemek için bir uçak seçmelisiniz.");
+        return;
+    }
+
+    // Yeni uçak ismini al
+    const newName = prompt(`"${selectedValue}" uçağının yeni ismini giriniz:`, selectedValue);
+    if (!newName || newName.trim() === "") return;
+
+    const upperNewName = newName.toUpperCase().trim();
+
+    if (upperNewName === selectedValue) {
+        alert("Yeni isim eski isimle aynı.");
+        return;
+    }
+
+    // Aynı isimde başka uçak var mı kontrol et
+    const q = window.query(window.collection(window.db, "airplanes"), 
+                          window.where("name", "==", upperNewName));
+    const snap = await window.getDocs(q);
+    if (!snap.empty) {
+        alert("Bu isimde bir uçak zaten mevcut.");
+        return;
+    }
+
+    if (!confirm(`"${selectedValue}" uçağının ismini "${upperNewName}" olarak değiştirmek istediğinize emin misiniz?\n\nNOT: Bu işlem, bu uçağa ait tüm defect kayıtlarında da uçak ismini güncelleyecektir.`)) {
+        return;
+    }
+
+    try {
+        // 1. Uçak ismini güncelle
+        await window.updateDoc(window.doc(window.db, "airplanes", id), {
+            name: upperNewName
+        });
+
+        // 2. Bu uçağa ait tüm defect kayıtlarını güncelle
+        const defectsQuery = window.query(
+            window.collection(window.db, "defects"),
+            window.where("airplane", "==", selectedValue)
+        );
+        
+        const defectsSnapshot = await window.getDocs(defectsQuery);
+        
+        if (!defectsSnapshot.empty) {
+            const updatePromises = [];
+            defectsSnapshot.forEach((docSnap) => {
+                updatePromises.push(
+                    window.updateDoc(window.doc(window.db, "defects", docSnap.id), {
+                        airplane: upperNewName
+                    })
+                );
+            });
+            
+            await Promise.all(updatePromises);
+            alert(`Uçak ismi başarıyla güncellendi.\n\n${updatePromises.length} adet defect kaydı güncellendi.`);
+        } else {
+            alert("Uçak ismi başarıyla güncellendi.\n\nBu uçağa ait defect kaydı bulunmamaktadır.");
+        }
+
+        // 3. Listeyi yenile
+        await loadAirplanes();
+        
+        // 4. Yeni ismi seçili yap
+        setTimeout(() => {
+            document.getElementById("airplane-select").value = upperNewName;
+            filterByAirplane();
+        }, 500);
+
+    } catch (error) {
+        console.error("Uçak güncellenirken hata:", error);
+        alert("Güncelleme sırasında hata oluştu: " + error.message);
+    }
+}
+
+// Alternatif: Basit düzenleme (sadece uçak listesinde değiştirir, defectleri değiştirmez)
+async function editAirplaneNameOnly() {
+    const select = document.getElementById("airplane-select");
+    const selectedValue = select.value;
+    const selectedOption = select.options[select.selectedIndex];
+    const id = selectedOption.dataset.id;
+
+    if (!selectedValue || selectedValue === "ALL") {
+        alert("Düzenlemek için bir uçak seçmelisiniz.");
+        return;
+    }
+
+    const newName = prompt(`"${selectedValue}" uçağının yeni ismini giriniz:`, selectedValue);
+    if (!newName || newName.trim() === "") return;
+
+    const upperNewName = newName.toUpperCase().trim();
+
+    if (upperNewName === selectedValue) {
+        alert("Yeni isim eski isimle aynı.");
+        return;
+    }
+
+    // Aynı isimde başka uçak var mı kontrol et
+    const q = window.query(window.collection(window.db, "airplanes"), 
+                          window.where("name", "==", upperNewName));
+    const snap = await window.getDocs(q);
+    if (!snap.empty) {
+        alert("Bu isimde bir uçak zaten mevcut.");
+        return;
+    }
+
+    try {
+        await window.updateDoc(window.doc(window.db, "airplanes", id), {
+            name: upperNewName
+        });
+        
+        alert(`Uçak ismi "${upperNewName}" olarak güncellendi.\n\nNOT: Bu uçağa ait defect kayıtlarındaki uçak ismi değişmeyecektir. Eski isimle kayıtlı defectler görünmeye devam edecektir.`);
+        
+        await loadAirplanes();
+        
+        // Seçimi sıfırla
+        select.value = "";
+        localStorage.removeItem("lastSelectedPlane");
+        document.getElementById("defect-list").innerHTML = "";
+
+    } catch (error) {
+        console.error("Uçak güncellenirken hata:", error);
+        alert("Hata oluştu: " + error.message);
+    }
+}
+
         // --- CRUD İŞLEMLERİ (FIREBASE) ---
 
         async function saveDefectToFirebase() {
@@ -1200,6 +1346,47 @@
                 exportBtn.innerText = originalText;
             }
         }
+
+// Toplu uçak ismi güncelleme fonksiyonu
+async function updateAllDefectsForAirplane(oldName, newName) {
+    try {
+        const defectsQuery = window.query(
+            window.collection(window.db, "defects"),
+            window.where("airplane", "==", oldName)
+        );
+        
+        const defectsSnapshot = await window.getDocs(defectsQuery);
+        
+        if (defectsSnapshot.empty) {
+            return { success: true, updatedCount: 0, message: "Güncellenecek kayıt bulunamadı" };
+        }
+        
+        const updatePromises = [];
+        defectsSnapshot.forEach((docSnap) => {
+            updatePromises.push(
+                window.updateDoc(window.doc(window.db, "defects", docSnap.id), {
+                    airplane: newName
+                })
+            );
+        });
+        
+        await Promise.all(updatePromises);
+        
+        return { 
+            success: true, 
+            updatedCount: updatePromises.length, 
+            message: `${updatePromises.length} adet defect kaydı güncellendi` 
+        };
+        
+    } catch (error) {
+        console.error("Defect kayıtları güncellenirken hata:", error);
+        return { 
+            success: false, 
+            updatedCount: 0, 
+            message: "Hata: " + error.message 
+        };
+    }
+}
 
         // --- SIDEBAR & THEME ---
         function toggleSidebar() {
