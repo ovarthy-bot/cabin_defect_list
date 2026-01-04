@@ -3,203 +3,414 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Uçak Defect Takip (Firebase)</title>
     <style>
+        /* --- YENİ EKLENEN EV (HOME) BUTONU STİLİ --- */
+        .home-btn {
+            position: fixed;
+            top: 10px;
+            left: 70px;
+            /* Menü butonunun yanına gelmesi için boşluk */
+            font-size: 24px;
+            cursor: pointer;
+            background-color: #17a2b8;
+            /* Ayırt edilmesi için Turkuaz renk */
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            z-index: 1000;
+            text-decoration: none;
+            /* Link alt çizgisini kaldır */
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 30px;
+            /* Menü butonuyla hizalı yükseklik */
+            line-height: 1;
+        }
 
-        let suppressSuggestions = false;
+        .home-btn:hover {
+            background-color: #138496;
+        }
 
-
-/* --- EV (HOME) BUTONU STİLİ - GÜNCELLENDİ --- */
-/* --- MENÜ BUTONU STİLİ - GÜNCELLENDİ --- */
-.menu-btn { 
-    position: fixed; 
-    top: 25px; 
-    left: 15px; 
-    font-size: 24px; 
-    cursor: pointer; 
-    background-color: #007bff; 
-    color: white; 
-    width: 45px;
-    height: 45px; 
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%; 
-    z-index: 2001; /* EV butonundan daha üstte */
-    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
-    border: 2px solid white;
-    transition: transform 0.2s;
-}
-
-.menu-btn:active { transform: scale(0.9); }
-
-/* --- EV (HOME) BUTONU STİLİ - GÜNCELLENDİ --- */
-.home-btn { 
-    position: fixed; 
-    top: 55px; /* Menü butonunun hemen altı (25px + 45px + 10px boşluk) */
-    left: 15px; /* Menü butonuyla aynı hizada */
-    font-size: 24px; 
-    cursor: pointer; 
-    background-color: #17a2b8; 
-    color: white; 
-    width: 30px; 
-    height: 30px; 
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%; 
-    z-index: 2000; /* Menü butonundan daha altta */
-    text-decoration: none; 
-    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
-    border: 2px solid white;
-    transition: all 0.3s ease;
-}
-
-.home-btn:hover { 
-    background-color: #138496; 
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-}
-
-.home-btn:active { 
-    transform: scale(0.95);
-}
-
-/* Mobil cihazlar için optimize edilmiş buton yerleşimi */
-@media (max-width: 600px) {
-    .menu-btn {
-        top: 5px;
-        left: 10px;
-        width: 30px;
-        height: 30px;
-        font-size: 20px;
-    }
-    
-    .home-btn {
-        top: 5px;      /* Menü butonuyla aynı hizaya (yukarı) çektik */
-        left: 50px;     /* Menü butonunun genişliği + boşluk (10+45+10) */
-        width: 30px;
-        height: 30px;
-        font-size: 20px;
-    }
-
-    /* Üstten butonların üstüne binmemesi için konteynere biraz pay verelim */
-    .container { 
-        margin-top: 75px; 
-        padding: 10px; 
-    }
-    
-    .container.sidebar-open { 
-        margin-left: 0; 
-        transform: translateX(250px); 
-    }
-}
-        
         /* --- GENEL STİLLER (AYNEN KORUNDU VE GÜNCELLENDİ) --- */
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; display: flex; overflow-x: hidden; transition: background-color 0.3s, color 0.3s; }
-        .sidebar { 
-    height: 100%; 
-    width: 0; 
-    position: fixed; 
-    top: 0; 
-    left: 0; 
-    background-color: #333; 
-    overflow-x: hidden; 
-    transition: 0.3s; 
-    padding-top: 130px; /* 60px'den 100px'e çıkarıldı (İstediğiniz kadar artırabilirsiniz) */
-    color: white; 
-    z-index: 1001; 
-}
-        .sidebar.open { width: 250px; }
-        /* --- KAPATMA BUTONU KONUMU GÜNCELLENDİ --- */
-.sidebar .close-btn { 
-    position: absolute; 
-    top: 40px; /* 10px'den 40px'e çekildi */
-    right: 25px; 
-    font-size: 36px; 
-    cursor: pointer; 
-}
-        .sidebar-content { padding: 20px; }
-        .sidebar-content label { display: block; margin-bottom: 10px; font-weight: bold; }
-        .sidebar-content input, .sidebar-content select, .sidebar-content button { width: 100%; padding: 8px; margin-bottom: 20px; border: none; border-radius: 4px; cursor: pointer; }
-        .sidebar-content button { background-color: #4CAF50; color: white; }
-        .sidebar-content button:hover { background-color: #45a049; }
-        .menu-btn { 
-    position: fixed; 
-    top: 5px; /* Üstten biraz daha aşağı çekerek durum çubuğundan kurtardık */
-    left: 15px; 
-    font-size: 24px; 
-    cursor: pointer; 
-    background-color: #007bff; 
-    color: white; 
-    width: 30px; /* Kare yerine dairesel ve daha büyük */
-    height: 30px; 
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%; 
-    z-index: 2000; 
-    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
-    border: 2px solid white; /* Görünürlüğü artırmak için çerçeve */
-}
-        
-        .container { max-width: 800px; margin: 20px auto; padding: 20px; background-color: #fff; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); border-radius: 8px; transition: margin-left 0.3s, background-color 0.3s, color 0.3s; text-align: center; }
-        .container.sidebar-open { margin-left: 250px; }
-        .email-info { position: absolute; top: 10px; right: 10px; font-size: 12px; color: #555; }
-        
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            display: flex;
+            overflow-x: hidden;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .sidebar {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #333;
+            overflow-x: hidden;
+            transition: 0.3s;
+            padding-top: 60px;
+            color: white;
+            z-index: 1001;
+        }
+
+        .sidebar.open {
+            width: 250px;
+        }
+
+        .sidebar .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 25px;
+            font-size: 36px;
+            cursor: pointer;
+        }
+
+        .sidebar-content {
+            padding: 20px;
+        }
+
+        .sidebar-content label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .sidebar-content input,
+        .sidebar-content select,
+        .sidebar-content button {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .sidebar-content button {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .sidebar-content button:hover {
+            background-color: #45a049;
+        }
+
+        .menu-btn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            z-index: 1000;
+            transition: background-color 0.3s;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            transition: margin-left 0.3s, background-color 0.3s, color 0.3s;
+            text-align: center;
+        }
+
+        .container.sidebar-open {
+            margin-left: 250px;
+        }
+
+        .email-info {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 12px;
+            color: #555;
+        }
+
         /* Uçak Yönetimi Stilleri */
-        .airplane-management { display: flex; gap: 5px; margin-bottom: 15px; align-items: flex-end;}
-        .airplane-management select { flex-grow: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; }
-        .airplane-btn { padding: 10px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; min-width: 40px;}
-        .airplane-btn.delete { background-color: #dc3545; }
-        
-        .input-section label { display: block; margin-top: 10px; font-weight: bold; text-align: left;}
-        .input-section input, .input-section select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; box-sizing: border-box; }
-        .input-section button.main-save-btn { display: block; width: 100%; padding: 10px; margin-top: 20px; background-color: #007bff; color: #fff; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; }
-        .input-section button.main-save-btn:hover { background-color: #000000; }
-        
-        .list-section { margin-top: 20px; }
-        #defect-list { list-style-type: none; padding: 0; }
-        #defect-list li { margin-bottom: 15px; padding: 15px; background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 4px; display: flex; flex-direction: row; align-items: flex-start; justify-content: space-between; position: relative;}
-        #defect-list img { width: 100px; height: 100px; margin-right: 15px; border-radius: 4px; object-fit: cover; cursor: pointer; }
-        #defect-list .defect-details { flex-grow: 1; text-align: left; }
-        #defect-list .defect-details div { margin: 5px 0; font-size: 14px; }
-        #defect-list .defect-details .label { font-weight: bold; color: #333; }
-        
-        .buttons { display: flex; gap: 10px; align-self: flex-end; }
-        .shortcut-buttons { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
-        .shortcut-buttons button { padding: 5px 10px; border: none; background-color: #333; color: white; border-radius: 3px; cursor: pointer; font-size: 12px; }
-        
-        .export-button, .import-button { width: 100%; padding: 10px; margin-top: 10px; color: #fff; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; }
-        .export-button { background-color: #28a745; }
-        .import-button { background-color: #bbcd1a; }
-        
-        .image-upload-options { display: flex; gap: 10px; margin-top: 5px; justify-content: center; }
-        .image-upload-options button { width: 40px; height: 40px; border-radius: 4px; background-color: #6c757d; border: none; color: white; cursor: pointer; position: relative; font-size: 20px; }
-        
-        .suggestion-list { position: absolute; background-color: #fff; border: 1px solid #ccc; max-height: 200px; overflow-y: auto; width: 90%; z-index: 1000; display: none; text-align: left; }
-        .suggestion-list div { padding: 8px; cursor: pointer; }
-        .suggestion-list div:hover { background-color: #f0f0f0; }
+        .airplane-management {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            align-items: flex-end;
+        }
+
+        .airplane-management select {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .airplane-btn {
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            min-width: 40px;
+        }
+
+        .airplane-btn.delete {
+            background-color: #dc3545;
+        }
+
+        .input-section label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+            text-align: left;
+        }
+
+        .input-section input,
+        .input-section select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        .input-section button.main-save-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-top: 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .input-section button.main-save-btn:hover {
+            background-color: #000000;
+        }
+
+        .list-section {
+            margin-top: 20px;
+        }
+
+        #defect-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        #defect-list li {
+            margin-bottom: 15px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        #defect-list img {
+            width: 100px;
+            height: 100px;
+            margin-right: 15px;
+            border-radius: 4px;
+            object-fit: cover;
+            cursor: pointer;
+        }
+
+        #defect-list .defect-details {
+            flex-grow: 1;
+            text-align: left;
+        }
+
+        #defect-list .defect-details div {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        #defect-list .defect-details .label {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            align-self: flex-end;
+        }
+
+        .shortcut-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .shortcut-buttons button {
+            padding: 5px 10px;
+            border: none;
+            background-color: #333;
+            color: white;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .export-button,
+        .import-button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .export-button {
+            background-color: #28a745;
+        }
+
+        .import-button {
+            background-color: #bbcd1a;
+        }
+
+        .image-upload-options {
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+            justify-content: center;
+        }
+
+        .image-upload-options button {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            background-color: #6c757d;
+            border: none;
+            color: white;
+            cursor: pointer;
+            position: relative;
+            font-size: 20px;
+        }
+
+        .suggestion-list {
+            position: absolute;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            max-height: 200px;
+            overflow-y: auto;
+            width: 90%;
+            z-index: 1000;
+            display: none;
+            text-align: left;
+        }
+
+        .suggestion-list div {
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        .suggestion-list div:hover {
+            background-color: #f0f0f0;
+        }
 
         /* Loader */
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 20px; height: 20px; animation: spin 2s linear infinite; display: none; margin: 0 auto;}
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 2s linear infinite;
+            display: none;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
 
         /* Dark Theme overrides */
-        body.dark-theme { background-color: #1a1a1a; color: #fff; }
-        .dark-theme .container { background-color: #2d2d2d; color: #fff; }
-        .dark-theme .input-section input, .dark-theme .input-section select { background-color: #3a3a3a; color: #fff; border-color: #555; }
-        .dark-theme #defect-list li { background-color: #3a3a3a; border-color: #555; }
-        .dark-theme .defect-details .label { color: #ccc; }
-        
+        body.dark-theme {
+            background-color: #1a1a1a;
+            color: #fff;
+        }
+
+        .dark-theme .container {
+            background-color: #2d2d2d;
+            color: #fff;
+        }
+
+        .dark-theme .input-section input,
+        .dark-theme .input-section select {
+            background-color: #3a3a3a;
+            color: #fff;
+            border-color: #555;
+        }
+
+        .dark-theme #defect-list li {
+            background-color: #3a3a3a;
+            border-color: #555;
+        }
+
+        .dark-theme .defect-details .label {
+            color: #ccc;
+        }
+
         @media (max-width: 600px) {
-            .container { margin-left: 0; padding: 10px; }
-            .container.sidebar-open { margin-left: 0; transform: translateX(250px); }
-            #defect-list li { flex-direction: column; }
-            #defect-list .buttons { width: 100%; justify-content: space-between; margin-top: 10px; }
-            .airplane-management { flex-wrap: wrap; }
-            .airplane-management select { width: 100%; }
+            .container {
+                margin-left: 0;
+                padding: 10px;
+            }
+
+            .container.sidebar-open {
+                margin-left: 0;
+                transform: translateX(250px);
+            }
+
+            #defect-list li {
+                flex-direction: column;
+            }
+
+            #defect-list .buttons {
+                width: 100%;
+                justify-content: space-between;
+                margin-top: 10px;
+            }
+
+            .airplane-management {
+                flex-wrap: wrap;
+            }
+
+            .airplane-management select {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -211,7 +422,7 @@
         <span class="close-btn" onclick="toggleSidebar()">×</span>
         <div class="sidebar-content">
             <label for="image-scale">Resim Kalitesi (0.1 - 1):</label>
-            <input type="number" id="image-scale" step="0.1" min="0.1" max="1" value="1">
+            <input type="number" id="image-scale" step="0.1" min="0.1" max="1" value="0.5">
             <label for="theme-select">Tema:</label>
             <select id="theme-select" onchange="changeTheme()">
                 <option value="light" selected>Açık Tema</option>
@@ -230,17 +441,17 @@
             <div class="airplane-management">
                 <select id="airplane-select" onchange="filterByAirplane()">
                     <option value="" disabled selected>Uçak Seçiniz veya Ekleyiniz</option>
-                    </select>
+                </select>
                 <button class="airplane-btn" onclick="addNewAirplane()" title="Yeni Uçak Ekle">+</button>
-                <button class="airplane-btn delete" onclick="deleteSelectedAirplane()" title="Seçili Uçağı Sil">-</button>
+                <button class="airplane-btn delete" onclick="deleteSelectedAirplane()"
+                    title="Seçili Uçağı Sil">-</button>
             </div>
 
             <label for="defect">DEFECT:</label>
             <div class="shortcut-buttons">
-                <button type="button" onclick="addShortcut('MISSING')">MISSING 🔍</button>
-                <button type="button" onclick="addShortcut('DAMAGED')">DAMAGED 📦</button>
+                <button type="button" onclick="addShortcut('DAMAGED')">DAMAGED ⚒️</button>
                 <button type="button" onclick="addShortcut('DISLOCATED')">DISLOCATED ↔️</button>
-                <button type="button" onclick="addShortcut('LOOSE')">LOOSE 🔩</button>
+                <button type="button" onclick="addShortcut('LOOSE')">LOOSE 🔧</button>
                 <button type="button" onclick="addShortcut('NOT WORKING')">NOT WORKING ❌</button>
             </div>
             <input type="text" id="defect" placeholder="Defect giriniz" autocomplete="off"
@@ -263,13 +474,19 @@
             <div class="image-upload-options">
                 <button onclick="document.getElementById('camera-upload').click()">📷</button>
                 <button onclick="document.getElementById('gallery-upload').click()">🖼️</button>
+
             </div>
-            <input type="file" id="camera-upload" accept="image/*" capture="environment" style="display: none;" onchange="handleImageUpload(event)">
-            <input type="file" id="gallery-upload" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
-            
+            <input type="file" id="camera-upload" accept="image/*" capture="environment" style="display: none;"
+                onchange="handleImageUpload(event)">
+            <input type="file" id="gallery-upload" accept="image/*" style="display: none;"
+                onchange="handleImageUpload(event)">
+
+
+
             <div id="image-preview-container" style="display:none; margin-top:10px;">
                 <img id="preview-img" style="width: 100px; height: 100px; object-fit: cover; border-radius: 4px;">
-                <button onclick="clearImageSelection()" style="background:red; color:white; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer;">x</button>
+                <button onclick="clearImageSelection()"
+                    style="background:red; color:white; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer;">x</button>
             </div>
 
             <button onclick="saveDefectToFirebase()" class="main-save-btn">
@@ -286,18 +503,10 @@
             <ul id="defect-list"></ul>
         </div>
 
-        <div style="margin-top: 20px; padding: 10px; background: #eee; border-radius: 4px;">
-    <label for="export-scale" style="font-weight: bold; color: #333;">Excel Resim Kalitesi:</label>
-    <select id="export-scale" style="padding: 5px; margin-left: 10px;">
-        <option value="1">Yüksek (Orijinal)</option>
-        <option value="0.5" selected>Orta (%50 Küçült)</option>
-        <option value="0.2">Düşük (Hızlı/Küçük Dosya)</option>
-        <option value="0.05">Çok Düşük (Sadece Önizleme)</option>
-    </select>
-</div>
-
         <button class="export-button" onclick="exportToExcel()">Listeyi Excele Aktar</button>
-        </div>
+        <button class="import-button" onclick="document.getElementById('excel-import').click()">Excel'den Import Et</button>
+        <input type="file" id="excel-import" accept=".xlsx, .xls" style="display:none" onchange="importFromExcel(event)">
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 
@@ -309,12 +518,12 @@
         // --- BURAYI DOLDURUN: KENDİ FIREBASE PROJE BİLGİLERİNİZ ---
         // Your web app's Firebase configuration
         const firebaseConfig = {
-        apiKey: "AIzaSyAXKtBrHzw5P6vO0MwzrD-TJdm7t6heLpg",
-        authDomain: "cabin-defect-list-5594c.firebaseapp.com",
-        projectId: "cabin-defect-list-5594c",
-        storageBucket: "cabin-defect-list-5594c.firebasestorage.app",
-        messagingSenderId: "1074016655708",
-        appId: "1:1074016655708:web:dd74b52b089ae272098999"
+            apiKey: "AIzaSyAXKtBrHzw5P6vO0MwzrD-TJdm7t6heLpg",
+            authDomain: "cabin-defect-list-5594c.firebaseapp.com",
+            projectId: "cabin-defect-list-5594c",
+            storageBucket: "cabin-defect-list-5594c.firebasestorage.app",
+            messagingSenderId: "1074016655708",
+            appId: "1:1074016655708:web:dd74b52b089ae272098999"
         };
         // -----------------------------------------------------------
 
@@ -337,7 +546,7 @@
         window.updateDoc = updateDoc;
         window.orderBy = orderBy;
         window.serverTimestamp = serverTimestamp;
-        
+
         // Storage fonksiyonları
         window.ref = ref;
         window.uploadString = uploadString;
@@ -369,39 +578,152 @@
             "LAVATORY PLACARDS ARE MISSING"
         ];
 
-        // --- UÇAK YÖNETİMİ (KATEGORİ YERİNE) ---
-        
-        async function loadAirplanes() {
-    if (!window.db) { setTimeout(loadAirplanes, 500); return; }
 
-    const airplaneSelect = document.getElementById("airplane-select");
-    // Önce temizle, sonra varsayılan ve "TÜM UÇAKLAR" seçeneğini ekle
-    airplaneSelect.innerHTML = `
+        async function importFromExcel(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Uçak seçili mi kontrol et
+            const airplane = document.getElementById('airplane-select').value;
+            if (!airplane) {
+                alert("Lütfen önce bir uçak seçin.");
+                event.target.value = ''; // Dosya seçimini sıfırla
+                return;
+            }
+
+            // Dosyayı oku
+            const reader = new FileReader();
+            reader.onload = async function (e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = new ExcelJS.Workbook();
+                await workbook.xlsx.load(data);
+                const worksheet = workbook.worksheets[0]; // İlk sayfa
+
+                const defects = [];
+                let hasError = false;
+                let errorMessage = "";
+
+                for (let rowIndex = 1; rowIndex <= worksheet.rowCount; rowIndex++) {
+                    const row = worksheet.getRow(rowIndex);
+                    
+                    // İlk satır başlık kontrolü
+                    if (rowIndex === 1) {
+                        const firstCellValue = row.getCell(1).value;
+                        if (firstCellValue && typeof firstCellValue === 'string' && 
+                            (firstCellValue.toUpperCase().includes('DEFECT') || firstCellValue.toLowerCase().includes('defect'))) {
+                            continue; // Başlık satırını atla
+                        }
+                    }
+
+                    // Satırdan hücre değerlerini al
+                    const defectCell = row.getCell(1)?.value; // A sütunu (ilk sütun)
+                    const locationCell = row.getCell(2)?.value; // B sütunu
+                    const noteCell = row.getCell(3)?.value; // C sütunu
+                    const partNumberCell = row.getCell(4)?.value; // D sütunu
+                    const manHoursCell = row.getCell(5)?.value; // E sütunu
+
+                    // İlk sütun (defect) boş mu kontrol et - ZORUNLU
+                    if (!defectCell || defectCell.toString().trim() === '') {
+                        errorMessage = `Satır ${rowIndex}: Defect boş olamaz.`;
+                        hasError = true;
+                        break;
+                    }
+
+                    // Defect objesini oluştur
+                    const defectObj = {
+                        airplane: airplane,
+                        defect: defectCell.toString().trim().toUpperCase(),
+                        location: locationCell ? locationCell.toString().trim().toUpperCase() : '',
+                        note: noteCell ? noteCell.toString().trim().toUpperCase() : '',
+                        partNumber: partNumberCell ? partNumberCell.toString().trim().toUpperCase() : '',
+                        manHours: manHoursCell ? manHoursCell.toString().trim().toUpperCase() : '',
+                    };
+
+                    defects.push(defectObj);
+                }
+
+                if (hasError) {
+                    alert("HATA: " + errorMessage + "\n\nImport işlemi durduruldu.");
+                    event.target.value = '';
+                    return;
+                }
+
+                if (defects.length === 0) {
+                    alert("Excel dosyasında işlenecek veri bulunamadı.");
+                    event.target.value = '';
+                    return;
+                }
+
+                // Kullanıcıya kaç kayıt ekleneceğini sor
+                const confirmImport = confirm(`${defects.length} adet defect kaydı ${airplane} uçağına eklenmek üzere. Emin misiniz?`);
+                if (!confirmImport) {
+                    event.target.value = '';
+                    return;
+                }
+
+                // Firebase'e kaydet
+                const results = await saveMultipleDefectsToFirebase(defects);
+                alert(`Import işlemi tamamlandı.\nBaşarılı: ${results.successCount}\nBaşarısız: ${results.failureCount}`);
+                event.target.value = ''; // Dosya seçimini sıfırla
+                
+                // Listeyi yenile
+                filterByAirplane();
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        async function saveMultipleDefectsToFirebase(defects) {
+            const results = { successCount: 0, failureCount: 0 };
+            
+            for (const defect of defects) {
+                try {
+                    await window.addDoc(window.collection(window.db, "defects"), {
+                        ...defect,
+                        createdAt: window.serverTimestamp()
+                    });
+                    results.successCount++;
+                } catch (error) {
+                    console.error("Defect kaydedilirken hata:", error, defect);
+                    results.failureCount++;
+                }
+            }
+            
+            return results;
+        }
+
+        // --- UÇAK YÖNETİMİ (KATEGORİ YERİNE) ---
+
+        async function loadAirplanes() {
+            if (!window.db) { setTimeout(loadAirplanes, 500); return; }
+
+            const airplaneSelect = document.getElementById("airplane-select");
+            // Önce temizle, sonra varsayılan ve "TÜM UÇAKLAR" seçeneğini ekle
+            airplaneSelect.innerHTML = `
         <option value="" disabled selected>Uçak Seçiniz</option>
         <option value="ALL">--- TÜM UÇAKLAR ---</option>
     `;
-    
-    try {
-        const q = window.query(window.collection(window.db, "airplanes"), window.orderBy("name"));
-        const querySnapshot = await window.getDocs(q);
-        
-        querySnapshot.forEach((doc) => {
-            const opt = document.createElement("option");
-            opt.value = doc.data().name;
-            opt.text = doc.data().name;
-            opt.dataset.id = doc.id; 
-            airplaneSelect.appendChild(opt);
-        });
-        
-        const lastPlane = localStorage.getItem("lastSelectedPlane");
-        if(lastPlane) {
-            airplaneSelect.value = lastPlane;
-            filterByAirplane();
+
+            try {
+                const q = window.query(window.collection(window.db, "airplanes"), window.orderBy("name"));
+                const querySnapshot = await window.getDocs(q);
+
+                querySnapshot.forEach((doc) => {
+                    const opt = document.createElement("option");
+                    opt.value = doc.data().name;
+                    opt.text = doc.data().name;
+                    opt.dataset.id = doc.id;
+                    airplaneSelect.appendChild(opt);
+                });
+
+                const lastPlane = localStorage.getItem("lastSelectedPlane");
+                if (lastPlane) {
+                    airplaneSelect.value = lastPlane;
+                    filterByAirplane();
+                }
+            } catch (error) {
+                console.error("Uçaklar yüklenirken hata:", error);
+            }
         }
-    } catch (error) {
-        console.error("Uçaklar yüklenirken hata:", error);
-    }
-}
 
         async function addNewAirplane() {
             const planeName = prompt("Yeni eklenecek UÇAK ismini giriniz (Örn: TC-LGA):");
@@ -423,7 +745,7 @@
                     name: upperName,
                     createdAt: window.serverTimestamp()
                 });
-                
+
                 // Listeyi yenile
                 await loadAirplanes();
                 // Yeni eklenen uçağı seç
@@ -437,135 +759,103 @@
         }
 
         async function deleteSelectedAirplane() {
-    const select = document.getElementById("airplane-select");
-    const selectedPlane = select.value;
-    
-    // 1. Kontrol: Seçim yapılmamışsa veya "ALL" seçiliyse işlemi durdur
-    if (!selectedPlane || selectedPlane === "ALL") {
-        alert("Lütfen silmek istediğiniz uçağı tekil olarak seçin.");
-        return;
-    }
+            const select = document.getElementById("airplane-select");
+            const selectedPlane = select.value;
 
-    // Seçili uçağın Firestore ID'sine erişim
-    const selectedOption = select.options[select.selectedIndex];
-    const planeDocId = selectedOption.dataset.id;
-
-    const confirmMessage = `${selectedPlane} uçağını, bu uçağa ait TÜM DEFECT KAYITLARINI ve RESİMLERİ kalıcı olarak silmek istediğinize emin misiniz?\n\nBU İŞLEM GERİ ALINAMAZ!`;
-    
-    if (!confirm(confirmMessage)) return;
-
-    try {
-        // Arayüzde işlem başladığını göster
-        document.getElementById("defect-list").innerHTML = '<li style="text-align:center;">Bağlı kayıtlar temizleniyor, lütfen bekleyin...</li>';
-
-        // 2. AŞAMA: Uçağa ait tüm defectleri bul
-        const q = window.query(
-            window.collection(window.db, "defects"), 
-            window.where("airplane", "==", selectedPlane)
-        );
-        const querySnapshot = await window.getDocs(q);
-
-        // 3. AŞAMA: Her bir defect kaydını ve resmini tek tek sil
-        const deletePromises = [];
-        
-        querySnapshot.forEach((defectDoc) => {
-            const data = defectDoc.data();
-            const defectId = defectDoc.id;
-
-            // Varsa resmi Storage'dan sil
-            if (data.imageUrl && data.imageUrl.startsWith("https://firebasestorage")) {
-                const imageRef = window.ref(window.storage, data.imageUrl);
-                deletePromises.push(window.deleteObject(imageRef).catch(e => console.warn("Resim silinemedi:", e)));
+            if (selectedPlane === "ALL") {
+                alert("Genel liste görünümü silinemez. Lütfen silmek istediğiniz uçağı tekil olarak seçin.");
+                return;
             }
 
-            // Defect dokümanını Firestore'dan sil
-            deletePromises.push(window.deleteDoc(window.doc(window.db, "defects", defectId)));
-        });
+            if (!selectedPlane) {
+                alert("Silmek için bir uçak seçmelisiniz.");
+                return;
+            }
 
-        // Tüm defect ve resim silme işlemlerinin bitmesini bekle
-        await Promise.all(deletePromises);
+            const selectedOption = select.options[select.selectedIndex];
+            const id = selectedOption.dataset.id;
 
-        // 4. AŞAMA: Uçağın kendisini "airplanes" koleksiyonundan sil
-        await window.deleteDoc(window.doc(window.db, "airplanes", planeDocId));
+            if (!confirm(`${selectedPlane} uçağını ve LİSTEDEN SİLMEK istediğinize emin misiniz? (Bu işlem sadece uçak ismini listeden kaldırır, defect kayıtları veritabanında kalır ama listede görünmez)`)) {
+                return;
+            }
 
-        alert(`${selectedPlane} uçağı ve ilgili tüm veriler başarıyla temizlendi.`);
-
-        // 5. AŞAMA: Arayüzü temizle ve listeyi yenile
-        select.value = "";
-        localStorage.removeItem("lastSelectedPlane");
-        await loadAirplanes(); 
-        document.getElementById("defect-list").innerHTML = ""; 
-
-    } catch (e) {
-        console.error("Silme işlemi sırasında hata:", e);
-        alert("İşlem sırasında bir hata oluştu: " + e.message);
-    }
-}
-
-        function filterByAirplane() {
-    const plane = document.getElementById("airplane-select").value;
-    if (!plane) return;
-
-    localStorage.setItem("lastSelectedPlane", plane);
-    
-    let q;
-    if (plane === "ALL") {
-        document.getElementById("list-header").innerText = `Tüm Kayıtlı Defectler`;
-        // Filtreleme yapmadan tüm koleksiyonu getir
-        q = window.query(window.collection(window.db, "defects"));
-    } else {
-        document.getElementById("list-header").innerText = `${plane} İçin Kayıtlar`;
-        // Sadece seçili uçağa göre filtrele
-        q = window.query(
-            window.collection(window.db, "defects"), 
-            window.where("airplane", "==", plane)
-        );
-    }
-
-    if (unsubscribeDefects) {
-        unsubscribeDefects();
-    }
-
-    const listEl = document.getElementById("defect-list");
-    listEl.innerHTML = '<li style="text-align:center;">Yükleniyor...</li>';
-
-    unsubscribeDefects = window.onSnapshot(q, (snapshot) => {
-        listEl.innerHTML = "";
-        currentDefectsData = []; 
-
-        if (snapshot.empty) {
-            listEl.innerHTML = '<li style="text-align:center;">Kayıt bulunamadı.</li>';
-            return;
+            try {
+                await window.deleteDoc(window.doc(window.db, "airplanes", id));
+                alert(`${selectedPlane} silindi.`);
+                select.value = "";
+                localStorage.removeItem("lastSelectedPlane");
+                loadAirplanes();
+                document.getElementById("defect-list").innerHTML = ""; // Listeyi temizle
+            } catch (e) {
+                console.error("Silme hatası:", e);
+                alert("Silinirken hata oluştu.");
+            }
         }
 
-        let tempDocs = [];
-        snapshot.forEach((doc) => {
-            let d = doc.data();
-            d.id = doc.id;
-            tempDocs.push(d);
-        });
+        function filterByAirplane() {
+            const plane = document.getElementById("airplane-select").value;
+            if (!plane) return;
 
-        // Tarihe göre sıralama (En yeni en üstte)
-        tempDocs.sort((a, b) => {
-            if(!a.createdAt || !b.createdAt) return 0;
-            return b.createdAt.seconds - a.createdAt.seconds;
-        });
+            localStorage.setItem("lastSelectedPlane", plane);
 
-        tempDocs.forEach((data) => {
-            currentDefectsData.push(data);
-            renderDefectItem(data);
-        });
+            let q;
+            if (plane === "ALL") {
+                document.getElementById("list-header").innerText = `Tüm Kayıtlı Defectler`;
+                // Filtreleme yapmadan tüm koleksiyonu getir
+                q = window.query(window.collection(window.db, "defects"));
+            } else {
+                document.getElementById("list-header").innerText = `${plane} İçin Kayıtlar`;
+                // Sadece seçili uçağa göre filtrele
+                q = window.query(
+                    window.collection(window.db, "defects"),
+                    window.where("airplane", "==", plane)
+                );
+            }
 
-    }, (error) => {
-        console.error("Veri çekme hatası:", error);
-        listEl.innerHTML = "Veriler alınamadı.";
-    });
-}
+            if (unsubscribeDefects) {
+                unsubscribeDefects();
+            }
+
+            const listEl = document.getElementById("defect-list");
+            listEl.innerHTML = '<li style="text-align:center;">Yükleniyor...</li>';
+
+            unsubscribeDefects = window.onSnapshot(q, (snapshot) => {
+                listEl.innerHTML = "";
+                currentDefectsData = [];
+
+                if (snapshot.empty) {
+                    listEl.innerHTML = '<li style="text-align:center;">Kayıt bulunamadı.</li>';
+                    return;
+                }
+
+                let tempDocs = [];
+                snapshot.forEach((doc) => {
+                    let d = doc.data();
+                    d.id = doc.id;
+                    tempDocs.push(d);
+                });
+
+                // Tarihe göre sıralama (En yeni en üstte)
+                tempDocs.sort((a, b) => {
+                    if (!a.createdAt || !b.createdAt) return 0;
+                    return b.createdAt.seconds - a.createdAt.seconds;
+                });
+
+                tempDocs.forEach((data) => {
+                    currentDefectsData.push(data);
+                    renderDefectItem(data);
+                });
+
+            }, (error) => {
+                console.error("Veri çekme hatası:", error);
+                listEl.innerHTML = "Veriler alınamadı.";
+            });
+        }
 
         function renderDefectItem(data) {
             const listEl = document.getElementById("defect-list");
             const li = document.createElement('li');
-            
+
             let imageHtml = '';
             if (data.imageUrl) {
                 imageHtml = `<img src="${data.imageUrl}" onclick="window.open('${data.imageUrl}', '_blank')">`;
@@ -603,12 +893,12 @@
             const manHours = document.getElementById('manHours').value;
 
             if (!airplane) { alert("Lütfen bir UÇAK seçiniz."); return; }
-            if (!defect || !location) { alert("Defect ve Location alanları zorunludur."); return; }
+            if (!defect ) { alert("Defect ve Location alanları zorunludur."); return; }
 
             const btn = document.querySelector('.main-save-btn');
             const loader = document.getElementById('save-loader');
             const btnText = document.getElementById('save-text');
-            
+
             btn.disabled = true;
             btnText.style.display = 'none';
             loader.style.display = 'block';
@@ -641,14 +931,13 @@
                     // Güncelleme
                     const docRef = window.doc(window.db, "defects", currentEditingId);
                     // createdAt güncelleme sırasında değişmesin
-                    delete defectObj.createdAt; 
+                    delete defectObj.createdAt;
                     await window.updateDoc(docRef, defectObj);
                     alert("Kayıt güncellendi!");
                     currentEditingId = null;
                 } else {
                     // Yeni Kayıt
                     await window.addDoc(window.collection(window.db, "defects"), defectObj);
-                    // alert("Kayıt başarılı!"); // Snapshot listener otomatik güncelleyeceği için alert opsiyonel
                 }
 
                 clearForm();
@@ -667,10 +956,6 @@
         async function deleteDefect(id, imageUrl) {
             if (!confirm("Bu kaydı ve RESMİ kalıcı olarak silmek istediğinize emin misiniz?")) return;
 
-            // Yükleme animasyonu ekleyelim (Butonun ikonunu değiştirerek)
-            const listEl = document.getElementById("defect-list");
-            // Kullanıcıya işlemin başladığını hissettirmek için basit bir yöntem
-            
             try {
                 // 1. Önce Veritabanı Kaydını Sil
                 await window.deleteDoc(window.doc(window.db, "defects", id));
@@ -684,7 +969,6 @@
                         console.log("Resim başarıyla silindi.");
                     } catch (imgError) {
                         console.warn("Resim silinemedi (Zaten silinmiş olabilir):", imgError);
-                        // Resim silinmese bile kayıt silindiği için akışı bozmuyoruz.
                     }
                 }
 
@@ -700,21 +984,21 @@
             const data = currentDefectsData.find(d => d.id === id);
             if (!data) return;
 
-            document.getElementById('airplane-select').value = data.airplane; // Uçak değişirse uyarabilir
+            document.getElementById('airplane-select').value = data.airplane;
             document.getElementById('defect').value = data.defect;
             document.getElementById('location').value = data.location;
             document.getElementById('note').value = data.note || "";
             document.getElementById('partNumber').value = data.partNumber || "";
             document.getElementById('manHours').value = data.manHours || "";
-            
+
             currentEditingId = id;
             document.querySelector('.main-save-btn span').innerText = "Güncelle";
-            
+
             if (data.imageUrl) {
                 document.getElementById('image-preview-container').style.display = 'block';
                 document.getElementById('preview-img').src = data.imageUrl;
             }
-            
+
             document.querySelector('.container').scrollIntoView({ behavior: 'smooth' });
         }
 
@@ -759,7 +1043,7 @@
 
             const reader = new FileReader();
             reader.onload = function (e) {
-                const scale = parseFloat(document.getElementById("image-scale").value) || 1;
+                const scale = parseFloat(document.getElementById("image-scale").value) || 0.5;
                 resizeImage(e.target.result, scale).then(resizedImage => {
                     selectedImageBase64 = resizedImage;
                     document.getElementById('image-preview-container').style.display = 'block';
@@ -790,8 +1074,8 @@
             const term = document.getElementById('search').value.toUpperCase();
             const listEl = document.getElementById('defect-list');
             listEl.innerHTML = "";
-            
-            const filtered = currentDefectsData.filter(d => 
+
+            const filtered = currentDefectsData.filter(d =>
                 (d.defect && d.defect.includes(term)) ||
                 (d.location && d.location.includes(term)) ||
                 (d.note && d.note.includes(term))
@@ -800,203 +1084,122 @@
             filtered.forEach(data => renderDefectItem(data));
         }
 
-function showSuggestions(val) {
-    const list = document.getElementById("suggestion-list");
+        function showSuggestions(val) {
+            const list = document.getElementById("suggestion-list");
+            list.innerHTML = "";
+            list.style.display = "none";
+            if (!val.trim()) return;
 
-    // ENTER sonrası manuel kapatıldıysa tekrar açma
-    if (list.dataset.locked === "true") return;
-
-    list.innerHTML = "";
-    list.style.display = "none";
-
-    if (!val.trim()) return;
-
-    const matches = suggestions.filter(s => s.includes(val));
-    if (matches.length > 0) {
-        list.style.display = "block";
-        matches.forEach(s => {
-            const div = document.createElement("div");
-            div.innerText = s;
-            div.onclick = () => {
-                document.getElementById("defect").value = s;
-                list.style.display = "none";
-                list.dataset.locked = "true";
-
-                document.getElementById("location").focus();
-
-                // Kilidi kısa süre sonra kaldır
-                setTimeout(() => {
-                    list.dataset.locked = "false";
-                }, 200);
-            };
-            list.appendChild(div);
-        });
-    }
-}
-
-
-
-// Mobil ve Masaüstü uyumlu Enter takibi (GÜNCELLENDİ)
-document.getElementById("defect").addEventListener("keydown", function (e) {
-    if (e.key === "Enter") {
-        e.preventDefault();
-
-        const list = document.getElementById("suggestion-list");
-
-        // Listeyi kilitle ve kapat
-        list.style.display = "none";
-        list.dataset.locked = "true";
-
-        this.blur();
-
-        setTimeout(() => {
-            document.getElementById("location").focus();
-            list.dataset.locked = "false";
-        }, 150);
-    }
-});
-
-
-
-
-        // Ekranda herhangi bir yere dokunulduğunda öneri listesini kapatır
-document.addEventListener('click', function(event) {
-    const list = document.getElementById("suggestion-list");
-    const defectInput = document.getElementById("defect");
-
-    // Eğer tıklanan yer defect kutusu değilse VE öneri listesinin kendisi değilse
-    if (!defectInput.contains(event.target) && !list.contains(event.target)) {
-        list.style.display = "none";
-    }
-});
-
-async function resizeImageFromUrl(imageUrl, scale) {
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.crossOrigin = "Anonymous"; // CORS için kritik
-        img.src = imageUrl;
-        
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            
-            // Orijinal boyutları alıyoruz
-            let targetWidth = img.width * scale;
-            let targetHeight = img.height * scale;
-            
-            canvas.width = targetWidth;
-            canvas.height = targetHeight;
-            
-            ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
-            
-            // Her zaman Base64 döndürür (Kalite 1 olsa bile)
-            const base64 = canvas.toDataURL('image/jpeg', 0.8);
-            resolve(base64);
-        };
-        
-        img.onerror = (e) => {
-            console.error("Resim yükleme hatası (CORS veya Link bozuk):", imageUrl);
-            reject(e);
-        };
-    });
-}
-
-
-
-// --- EXCEL EXPORT (Firebase Data Kullanarak) ---
-async function exportToExcel() {
-    if (currentDefectsData.length === 0) {
-        alert("Listede aktarılacak veri yok.");
-        return;
-    }
-
-    const exportBtn = document.querySelector('.export-button');
-    const exportScale = parseFloat(document.getElementById('export-scale').value);
-    const originalText = exportBtn.innerText;
-    
-    exportBtn.disabled = true;
-    exportBtn.innerText = "Resimler Hazırlanıyor...";
-
-    try {
-        const workbook = new ExcelJS.Workbook();
-        const sheet = workbook.addWorksheet("Defect Raporu");
-        
-        sheet.columns = [
-            { header: "UÇAK", key: "airplane", width: 15 },
-            { header: "DEFECT", key: "defect", width: 35 },
-            { header: "LOCATION", key: "location", width: 20 },
-            { header: "NOTE", key: "note", width: 25 },
-            { header: "P/N", key: "partNumber", width: 15 },
-            { header: "M/H", key: "manHours", width: 10 },
-            { header: "RESİM", key: "image", width: 30 }
-        ];
-
-        // Başlık stilini kalın yap
-        sheet.getRow(1).font = { bold: true };
-
-        for (let i = 0; i < currentDefectsData.length; i++) {
-            const d = currentDefectsData[i];
-            const rowNumber = i + 2;
-            
-            // Satırı ekle
-            const row = sheet.addRow({
-                airplane: d.airplane || "",
-                defect: d.defect || "",
-                location: d.location || "",
-                note: d.note || "",
-                partNumber: d.partNumber || "",
-                manHours: d.manHours || ""
-            });
-            
-            row.height = 95; // Resim için satır yüksekliği
-
-            const imgUrl = d.imageUrl || d.image;
-
-            if (imgUrl) {
-                try {
-                    // Resim URL'sini seçilen kaliteye göre Base64'e çevir
-                    const base64Data = await resizeImageFromUrl(imgUrl, exportScale);
-                    
-                    // ExcelJS'e resmi ekle (Sadece data kısmını alıyoruz)
-                    const imageId = workbook.addImage({
-                        base64: base64Data,
-                        extension: 'jpeg',
-                    });
-
-                    sheet.addImage(imageId, {
-                        tl: { col: 6, row: rowNumber - 1 },
-                        ext: { width: 180, height: 120 },
-                        editAs: 'oneCell'
-                    });
-                } catch (err) {
-                    console.warn("Satır " + rowNumber + " için resim işlenemedi:", err);
-                    row.getCell(7).value = "Resim Yüklenemedi";
-                }
+            const matches = suggestions.filter(s => s.includes(val));
+            if (matches.length > 0) {
+                list.style.display = "block";
+                matches.forEach(s => {
+                    const div = document.createElement("div");
+                    div.innerText = s;
+                    div.onclick = () => {
+                        document.getElementById("defect").value = s;
+                        list.style.display = "none";
+                        document.getElementById("location").focus();
+                    };
+                    list.appendChild(div);
+                });
             }
         }
 
-        // Dosyayı Oluştur ve İndir
-        const buffer = await workbook.xlsx.writeBuffer();
-        const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        const fileName = `Defect_Raporu_${new Date().toISOString().split('T')[0]}.xlsx`;
-        
-        a.href = url;
-        a.download = fileName;
-        a.click();
-        URL.revokeObjectURL(url);
-        
-    } catch (error) {
-        console.error("Excel Hatası:", error);
-        alert("Excel oluşturulurken bir hata oluştu: " + error.message);
-    } finally {
-        exportBtn.disabled = false;
-        exportBtn.innerText = originalText;
-    }
-}
+        // --- EXCEL EXPORT (Firebase Data Kullanarak) ---
+        async function exportToExcel() {
+            if (currentDefectsData.length === 0) {
+                alert("Listede aktarılacak veri yok.");
+                return;
+            }
 
-        
+            const exportBtn = document.querySelector('.export-button');
+            const originalText = exportBtn.innerText;
+            exportBtn.disabled = true;
+            exportBtn.innerText = "Excel Hazırlanıyor...";
+
+            try {
+                const workbook = new ExcelJS.Workbook();
+                const sheet = workbook.addWorksheet("Defects");
+
+                sheet.columns = [
+                    { header: "UÇAK", key: "airplane", width: 15 },
+                    { header: "DEFECT", key: "defect", width: 40 },
+                    { header: "LOCATION", key: "location", width: 20 },
+                    { header: "NOTE", key: "note", width: 30 },
+                    { header: "P/N", key: "partNumber", width: 15 },
+                    { header: "M/H", key: "manHours", width: 10 },
+                    { header: "RESİM", key: "image", width: 25 }
+                ];
+
+                sheet.getRow(1).font = { bold: true };
+
+                for (let i = 0; i < currentDefectsData.length; i++) {
+                    const d = currentDefectsData[i];
+                    const rowNumber = i + 2;
+
+                    const row = sheet.addRow({
+                        airplane: d.airplane || "",
+                        defect: d.defect || "",
+                        location: d.location || "",
+                        note: d.note || "",
+                        partNumber: d.partNumber || "",
+                        manHours: d.manHours || ""
+                    });
+                    row.height = 90; // Resim sığması için hücre yüksekliği
+
+                    const imageUrl = d.imageUrl || d.image;
+
+                    if (imageUrl) {
+                        try {
+                            const response = await fetch(imageUrl, {
+                                method: 'GET',
+                                mode: 'cors',
+                                cache: 'no-cache'
+                            });
+
+                            if (!response.ok) throw new Error("Resim indirilemedi");
+
+                            const blob = await response.blob();
+                            const arrayBuffer = await blob.arrayBuffer();
+
+                            const imageId = workbook.addImage({
+                                buffer: arrayBuffer,
+                                extension: 'jpeg',
+                            });
+
+                            sheet.addImage(imageId, {
+                                tl: { col: 6, row: rowNumber - 1 },
+                                ext: { width: 120, height: 110 },
+                                editAs: 'oneCell'
+                            });
+                        } catch (err) {
+                            console.error("Resim ekleme hatası:", err);
+                            row.getCell(7).value = "Resim Yüklenemedi (CORS?)";
+                        }
+                    } else {
+                        row.getCell(7).value = "Resim Yok";
+                    }
+                }
+
+                const buffer = await workbook.xlsx.writeBuffer();
+                const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                const selectedPlane = document.getElementById('airplane-select').value || 'Tum_Ucaklar';
+                a.href = url;
+                a.download = `Defects_${selectedPlane}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                a.click();
+                URL.revokeObjectURL(url);
+
+            } catch (error) {
+                console.error("Genel hata:", error);
+                alert("Hata: " + error.message);
+            } finally {
+                exportBtn.disabled = false;
+                exportBtn.innerText = originalText;
+            }
+        }
 
         // --- SIDEBAR & THEME ---
         function toggleSidebar() {
@@ -1010,58 +1213,7 @@ async function exportToExcel() {
                 document.body.classList.remove("dark-theme");
             }
         }
-
-
-// --- ÖNERİ LİSTESİ VE TEXTBOX GEÇİŞ YÖNETİMİ ---
-const defectInput = document.getElementById("defect");
-const suggestionList = document.getElementById("suggestion-list");
-const allInputs = ["defect", "location", "note", "partNumber", "manHours"];
-
-// 1. Kutudan çıkınca listeyi gizle (Blur)
-defectInput.addEventListener("blur", function() {
-    // Kısa bir gecikme ekliyoruz ki listedeki bir maddeye tıklandığında 
-    // liste hemen kapanıp tıklamayı iptal etmesin.
-    setTimeout(() => {
-        suggestionList.style.display = "none";
-    }, 200);
-});
-
-// 2. Kutuya odaklanınca (eğer yazı varsa) listeyi tekrar göster (Focus)
-defectInput.addEventListener("focus", function() {
-    if (this.value.trim() !== "") {
-        showSuggestions(this.value);
-    }
-});
-
-// 3. Tüm textboxlar için Enter ile bir sonrakine geçiş
-allInputs.forEach((id, index) => {
-    const inputEl = document.getElementById(id);
-    if (!inputEl) return;
-
-    inputEl.addEventListener("keydown", function(e) {
-        if (e.key === "Enter" || e.keyCode === 13) {
-            e.preventDefault();
-
-            // Eğer defect kutusundaysak listeyi hemen kapat
-            if (id === "defect") {
-                suggestionList.style.display = "none";
-            }
-
-            const nextId = allInputs[index + 1];
-            if (nextId) {
-                const nextEl = document.getElementById(nextId);
-                this.blur(); // Mevcut odağı bırak (mobil klavye yönetimi için)
-                setTimeout(() => nextEl.focus(), 100);
-            } else {
-                this.blur(); // Son kutu ise klavyeyi kapat
-            }
-        }
-    });
-});
-
-
-
-        
     </script>
 </body>
+
 </html>
