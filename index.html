@@ -135,6 +135,8 @@
             border-radius: 8px;
             transition: margin-left 0.3s, background-color 0.3s, color 0.3s;
             text-align: center;
+            overflow-x: hidden;
+            word-wrap: break-word;
         }
 
         .container.sidebar-open {
@@ -196,6 +198,9 @@
             border-radius: 4px;
             font-size: 16px;
             box-sizing: border-box;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            min-width: 0;
         }
 
         .input-section button.main-save-btn {
@@ -235,6 +240,9 @@
             align-items: flex-start;
             justify-content: space-between;
             position: relative;
+            min-width: 0;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
         }
 
         #defect-list img {
@@ -249,11 +257,17 @@
         #defect-list .defect-details {
             flex-grow: 1;
             text-align: left;
+            min-width: 0;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
         }
 
         #defect-list .defect-details div {
             margin: 5px 0;
             font-size: 14px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            line-height: 1.5;
         }
 
         #defect-list .defect-details .label {
@@ -386,11 +400,28 @@
 
         .dark-theme #defect-list li {
             background-color: #3a3a3a;
-            border-color: #555;
+            border-color: #3b0f0f;
         }
 
-        .dark-theme .defect-details .label {
-            color: #ccc;
+        .dark-theme #defect-list .defect-details .label {
+            color: #fff !important;
+            font-weight: bold;
+        }
+
+        .dark-theme .suggestion-list {
+            background-color: #3a3a3a;
+            border: 1px solid #555;
+            color: #fff;
+        }
+
+        .dark-theme .suggestion-list div {
+            color: #fff;
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        .dark-theme .suggestion-list div:hover {
+            background-color: #4a4a4a;
         }
 
         @media (max-width: 600px) {
