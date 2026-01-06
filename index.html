@@ -514,6 +514,9 @@
             <label for="manHours">M/H:</label>
             <input type="text" id="manHours" placeholder="Man Hours giriniz" oninput="handleUpperCase(this)">
 
+            <label for="quantity">QUANTITY:</label>
+            <input type="text" id="quantity" placeholder="Quantity giriniz" oninput="handleUpperCase(this)">
+
             <label>Resim Yükle:</label>
             <div class="image-upload-options">
                 <button onclick="document.getElementById('camera-upload').click()">📷</button>
@@ -665,6 +668,7 @@
                     const noteCell = row.getCell(3)?.value; // C sütunu
                     const partNumberCell = row.getCell(4)?.value; // D sütunu
                     const manHoursCell = row.getCell(5)?.value; // E sütunu
+                    const quantityCell = row.getCell(6)?.value; // F sütunu
 
                     // İlk sütun (defect) boş mu kontrol et - ZORUNLU
                     if (!defectCell || defectCell.toString().trim() === '') {
@@ -681,6 +685,7 @@
                         note: noteCell ? noteCell.toString().trim().toUpperCase() : '',
                         partNumber: partNumberCell ? partNumberCell.toString().trim().toUpperCase() : '',
                         manHours: manHoursCell ? manHoursCell.toString().trim().toUpperCase() : '',
+                        quantity: quantityCell ? quantityCell.toString().trim().toUpperCase() : '',
                     };
 
                     defects.push(defectObj);
@@ -917,6 +922,7 @@
                     ${data.note ? `<div><span class="label">NOTE:</span> ${data.note}</div>` : ''}
                     ${data.partNumber ? `<div><span class="label">P/N:</span> ${data.partNumber}</div>` : ''}
                     ${data.manHours ? `<div><span class="label">M/H:</span> ${data.manHours}</div>` : ''}
+                    ${data.quantity ? `<div><span class="label">QTY:</span> ${data.quantity}</div>` : ''}
                 </div>
                 <div class="buttons">
                     <button class="airplane-btn" style="background-color:#ffc107; color:black" onclick="prepareEdit('${data.id}')">✏️</button>
@@ -1068,6 +1074,7 @@ async function editAirplaneNameOnly() {
             const note = document.getElementById('note').value;
             const partNumber = document.getElementById('partNumber').value;
             const manHours = document.getElementById('manHours').value;
+            const quantity = document.getElementById('quantity').value;
 
             if (!airplane) { alert("Lütfen bir UÇAK seçiniz."); return; }
             if (!defect ) { alert("Defect ve Location alanları zorunludur."); return; }
@@ -1100,6 +1107,7 @@ async function editAirplaneNameOnly() {
                     note,
                     partNumber,
                     manHours,
+                    quantity,
                     imageUrl: imageUrl,
                     createdAt: window.serverTimestamp() // Sıralama için
                 };
@@ -1167,6 +1175,7 @@ async function editAirplaneNameOnly() {
             document.getElementById('note').value = data.note || "";
             document.getElementById('partNumber').value = data.partNumber || "";
             document.getElementById('manHours').value = data.manHours || "";
+            document.getElementById('quantity').value = data.quantity || "";
 
             currentEditingId = id;
             document.querySelector('.main-save-btn span').innerText = "Güncelle";
@@ -1201,6 +1210,7 @@ async function editAirplaneNameOnly() {
             document.getElementById('note').value = '';
             document.getElementById('partNumber').value = '';
             document.getElementById('manHours').value = '';
+            document.getElementById('quantity').value = '';
             document.getElementById('camera-upload').value = '';
             document.getElementById('gallery-upload').value = '';
             clearImageSelection();
@@ -1255,7 +1265,8 @@ async function editAirplaneNameOnly() {
             const filtered = currentDefectsData.filter(d =>
                 (d.defect && d.defect.includes(term)) ||
                 (d.location && d.location.includes(term)) ||
-                (d.note && d.note.includes(term))
+                (d.note && d.note.includes(term)) ||
+                (d.quantity && d.quantity.includes(term))
             );
 
             filtered.forEach(data => renderDefectItem(data));
@@ -1283,6 +1294,13 @@ async function editAirplaneNameOnly() {
             }
         }
 
+        function hideSuggestions() {
+            const list = document.getElementById("suggestion-list");
+            if (!list) return;
+            list.style.display = "none";
+            list.innerHTML = "";
+        }
+
         // --- EXCEL EXPORT (Firebase Data Kullanarak) ---
         async function exportToExcel() {
             if (currentDefectsData.length === 0) {
@@ -1306,6 +1324,7 @@ async function editAirplaneNameOnly() {
                     { header: "NOTE", key: "note", width: 30 },
                     { header: "P/N", key: "partNumber", width: 15 },
                     { header: "M/H", key: "manHours", width: 10 },
+                    { header: "QTY", key: "quantity", width: 10 },
                     { header: "RESİM", key: "image", width: 25 }
                 ];
 
@@ -1321,7 +1340,8 @@ async function editAirplaneNameOnly() {
                         location: d.location || "",
                         note: d.note || "",
                         partNumber: d.partNumber || "",
-                        manHours: d.manHours || ""
+                        manHours: d.manHours || "",
+                        quantity: d.quantity || ""
                     });
                     row.height = 90; // Resim sığması için hücre yüksekliği
 
@@ -1346,16 +1366,16 @@ async function editAirplaneNameOnly() {
                             });
 
                             sheet.addImage(imageId, {
-                                tl: { col: 6, row: rowNumber - 1 },
+                                tl: { col: 7, row: rowNumber - 1 },
                                 ext: { width: 120, height: 110 },
                                 editAs: 'oneCell'
                             });
                         } catch (err) {
                             console.error("Resim ekleme hatası:", err);
-                            row.getCell(7).value = "Resim Yüklenemedi (CORS?)";
+                            row.getCell(8).value = "Resim Yüklenemedi (CORS?)";
                         }
                     } else {
-                        row.getCell(7).value = "Resim Yok";
+                        row.getCell(8).value = "Resim Yok";
                     }
                 }
 
@@ -1430,6 +1450,24 @@ async function updateAllDefectsForAirplane(oldName, newName) {
             } else {
                 document.body.classList.remove("dark-theme");
             }
+        }
+
+        // Öneri listesini otomatik gizlemek için dinleyiciler
+        document.addEventListener('click', (e) => {
+            const list = document.getElementById("suggestion-list");
+            const defectInput = document.getElementById("defect");
+            if (!list || !defectInput) return;
+            if (!list.contains(e.target) && e.target !== defectInput) {
+                hideSuggestions();
+            }
+        });
+
+        const defectInputEl = document.getElementById("defect");
+        if (defectInputEl) {
+            defectInputEl.addEventListener("blur", () => {
+                // Küçük gecikme, liste tıklamalarını kaçırmamak için
+                setTimeout(hideSuggestions, 120);
+            });
         }
     </script>
 </body>
