@@ -228,6 +228,7 @@
         #defect-list li {
             margin-bottom: 15px;
             padding: 15px;
+            padding-top: 38px;
             background-color: #ffe5e5;
             border: 1px solid #f5a0a0;
             border-radius: 4px;
@@ -272,12 +273,6 @@
             margin-top: 10px;
             width: 100%;
             flex-wrap: wrap;
-            gap: 6px;
-        }
-
-        /* --- Sol alt buton grubu (düzenle + sil) --- */
-        .action-left {
-            display: flex;
             gap: 6px;
         }
 
@@ -354,29 +349,115 @@
             color: #333;
         }
 
-        /* Eski .buttons stili (artık kullanılmıyor ama bırakıldı) */
-        .buttons {
+        /* --- İstatistik / Filtre Chip Paneli --- */
+        .stats-panel {
             display: flex;
-            gap: 10px;
-            align-self: flex-end;
-        }
-
-        .shortcut-buttons {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
+            gap: 5px;
+            margin: 6px 0 10px;
             flex-wrap: wrap;
+            align-items: center;
         }
-
-        .shortcut-buttons button {
-            padding: 5px 10px;
-            border: none;
-            background-color: #333;
-            color: white;
-            border-radius: 3px;
+        .stat-box {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 9px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #fff;
+            border: 2px solid transparent;
             cursor: pointer;
-            font-size: 12px;
+            background: none;
+            transition: filter 0.15s, border-color 0.15s, transform 0.12s;
+            white-space: nowrap;
+            line-height: 1.4;
         }
+        .stat-box:hover { filter: brightness(0.88); }
+        .stat-box.active-filter {
+            border-color: #fff;
+            box-shadow: 0 0 0 2px rgba(0,0,0,0.35);
+            transform: scale(1.07);
+        }
+        .stat-box .stat-num {
+            font-size: 13px;
+            font-weight: 900;
+        }
+        .stat-box.stat-remaining  { background-color: #e05555; }
+        .stat-box.stat-nrc-yazildi { background-color: #3399dd; }
+        .stat-box.stat-itemsiz    { background-color: #28a745; }
+        .stat-box.stat-nrc-kapandi { background-color: #20963a; }
+
+        /* Filtre kaldır butonu */
+        .stat-clear {
+            display: none;
+            align-items: center;
+            gap: 3px;
+            padding: 3px 9px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #fff;
+            background-color: #6c757d;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+        .stat-clear.visible { display: inline-flex; }
+        .stat-clear:hover   { background-color: #495057; }
+
+        /* dark tema */
+        .dark-theme .stat-box.stat-remaining   { background-color: #922; }
+        .dark-theme .stat-box.stat-nrc-yazildi { background-color: #1a6699; }
+        .dark-theme .stat-box.stat-itemsiz     { background-color: #1a6e30; }
+        .dark-theme .stat-box.stat-nrc-kapandi { background-color: #145e25; }
+
+        /* --- Yan yana input grubu --- */
+        .input-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .input-row .input-col {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .input-row .input-col label {
+            margin-top: 0;
+            font-size: 13px;
+        }
+        .input-row .input-col input {
+            margin-top: 4px;
+            padding: 8px;
+            font-size: 14px;
+        }
+        .card-top-actions {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            display: flex;
+            gap: 4px;
+        }
+        .card-top-actions button {
+            padding: 3px 7px;
+            font-size: 13px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .card-top-actions .btn-edit {
+            background-color: #ffc107;
+            color: #000;
+        }
+        .card-top-actions .btn-edit:hover  { background-color: #e0a800; }
+        .card-top-actions .btn-delete {
+            background-color: #dc3545;
+            color: #fff;
+        }
+        .card-top-actions .btn-delete:hover { background-color: #b02a37; }
 
         .export-button,
         .import-button {
@@ -568,30 +649,42 @@
             </div>
 
             <label for="defect">DEFECT:</label>
-            <div class="shortcut-buttons">
-                <button type="button" onclick="addShortcut('DAMAGED')">DAMAGED ⚒️</button>
-                <button type="button" onclick="addShortcut('DISLOCATED')">DISLOCATED ↔️</button>
-                <button type="button" onclick="addShortcut('LOOSE')">LOOSE 🔧</button>
-                <button type="button" onclick="addShortcut('NOT WORKING')">NOT WORKING ❌</button>
+            <!-- İstatistik / Filtre Paneli -->
+            <div class="stats-panel" id="stats-panel">
+                <button class="stat-box stat-remaining"   onclick="filterByStatus('remaining')"   title="Bekleyen defectleri filtrele"><span class="stat-num" id="stat-remaining">—</span> Bekleyen</button>
+                <button class="stat-box stat-nrc-yazildi" onclick="filterByStatus('nrc_yazildi')" title="NRC Yazıldı filtrele"><span class="stat-num" id="stat-nrc-yazildi">—</span> NRC Yazıldı</button>
+                <button class="stat-box stat-itemsiz"     onclick="filterByStatus('itemsiz')"     title="Itemsız yapıldı filtrele"><span class="stat-num" id="stat-itemsiz">—</span> Itemsız yapıldı</button>
+                <button class="stat-box stat-nrc-kapandi" onclick="filterByStatus('nrc_kapandi')" title="NRC Kapatıldı filtrele"><span class="stat-num" id="stat-nrc-kapandi">—</span> NRC Kapatıldı</button>
+                <button class="stat-clear" id="stat-clear-btn" onclick="clearStatusFilter()">✕ Filtreyi Kaldır</button>
             </div>
             <input type="text" id="defect" placeholder="Defect giriniz" autocomplete="off"
                 oninput="this.value = this.value.toUpperCase(); showSuggestions(this.value)">
             <div id="suggestion-list" class="suggestion-list"></div>
 
-            <label for="location">LOCATION:</label>
-            <input type="text" id="location" placeholder="Location giriniz" oninput="handleUpperCase(this)">
+            <div class="input-row">
+                <div class="input-col">
+                    <label for="location">LOCATION:</label>
+                    <input type="text" id="location" placeholder="Location" oninput="handleUpperCase(this)">
+                </div>
+                <div class="input-col">
+                    <label for="partNumber">P/N:</label>
+                    <input type="text" id="partNumber" placeholder="Part Number" oninput="handleUpperCase(this)">
+                </div>
+            </div>
+
+            <div class="input-row">
+                <div class="input-col">
+                    <label for="manHours">M/H:</label>
+                    <input type="text" id="manHours" placeholder="Man Hours" oninput="handleUpperCase(this)">
+                </div>
+                <div class="input-col">
+                    <label for="quantity">QUANTITY:</label>
+                    <input type="text" id="quantity" placeholder="Quantity" oninput="handleUpperCase(this)">
+                </div>
+            </div>
 
             <label for="note">NOTE:</label>
             <input type="text" id="note" placeholder="Note giriniz" oninput="handleUpperCase(this)">
-
-            <label for="partNumber">P/N:</label>
-            <input type="text" id="partNumber" placeholder="Part Number giriniz" oninput="handleUpperCase(this)">
-
-            <label for="manHours">M/H:</label>
-            <input type="text" id="manHours" placeholder="Man Hours giriniz" oninput="handleUpperCase(this)">
-
-            <label for="quantity">QUANTITY:</label>
-            <input type="text" id="quantity" placeholder="Quantity giriniz" oninput="handleUpperCase(this)">
 
             <label>Resim Yükle:</label>
             <div class="image-upload-options">
@@ -721,6 +814,8 @@
             // --- Optimistic UI ---
             applyStatusToLi(li, newStatus);
             if (data) data.status = newStatus;
+            renderFilteredList();
+            updateStats();
 
             // --- Firebase'e yaz ---
             try {
@@ -733,6 +828,8 @@
                 const rollback = currentStatus;
                 applyStatusToLi(li, rollback);
                 if (data) data.status = rollback;
+                renderFilteredList();
+                updateStats();
                 alert("Durum kaydedilemedi: " + error.message);
             }
         }
@@ -980,6 +1077,11 @@
             const plane = document.getElementById("airplane-select").value;
             if (!plane) return;
 
+            // Uçak değişince durum filtresini sıfırla
+            currentStatusFilter = null;
+            const clearBtn = document.getElementById('stat-clear-btn');
+            if (clearBtn) clearBtn.classList.remove('visible');
+
             localStorage.setItem("lastSelectedPlane", plane);
 
             let q;
@@ -1023,8 +1125,10 @@
 
                 tempDocs.forEach((data) => {
                     currentDefectsData.push(data);
-                    renderDefectItem(data);
                 });
+
+                renderFilteredList();
+                updateStats();
 
             }, (error) => {
                 console.error("Veri çekme hatası:", error);
@@ -1052,6 +1156,10 @@
             }
 
             li.innerHTML = `
+                <div class="card-top-actions">
+                    <button class="btn-edit"   onclick="prepareEdit('${data.id}')">✏️</button>
+                    <button class="btn-delete" onclick="deleteDefect('${data.id}','${data.imageUrl || ''}')">🗑️</button>
+                </div>
                 <div class="defect-content">
                     ${imageHtml}
                     <div class="defect-details">
@@ -1065,10 +1173,6 @@
                     </div>
                 </div>
                 <div class="defect-actions">
-                    <div class="action-left">
-                        <button class="airplane-btn" style="background-color:#ffc107;color:black" onclick="prepareEdit('${data.id}')">✏️</button>
-                        <button class="airplane-btn delete" onclick="deleteDefect('${data.id}','${data.imageUrl || ''}')">🗑️</button>
-                    </div>
                     <div class="action-status">
                         <button class="status-btn nrc-yazildi ${status === 'nrc_yazildi' ? 'active' : ''}"
                                 data-status="nrc_yazildi"
@@ -1267,14 +1371,67 @@
             input.value = input.value.toUpperCase();
         }
 
-        function addShortcut(text) {
-            let defectInput = document.getElementById("defect");
-            if (defectInput.value.trim() !== "") {
-                defectInput.value += " IS " + text;
-            } else {
-                defectInput.value = text;
+        // --- İstatistik güncelleme ---
+        function updateStats() {
+            const total      = currentDefectsData.length;
+            const nrcYazildi = currentDefectsData.filter(d => d.status === 'nrc_yazildi').length;
+            const itemsiz    = currentDefectsData.filter(d => d.status === 'itemsiz').length;
+            const nrcKapandi = currentDefectsData.filter(d => d.status === 'nrc_kapandi').length;
+            const remaining  = total - nrcYazildi - itemsiz - nrcKapandi;
+
+            document.getElementById('stat-remaining').textContent   = remaining;
+            document.getElementById('stat-nrc-yazildi').textContent = nrcYazildi;
+            document.getElementById('stat-itemsiz').textContent     = itemsiz;
+            document.getElementById('stat-nrc-kapandi').textContent = nrcKapandi;
+
+            // Aktif filtre vurgusu
+            document.querySelectorAll('.stat-box').forEach(btn => btn.classList.remove('active-filter'));
+            if (currentStatusFilter) {
+                const map = { remaining: 'stat-remaining', nrc_yazildi: 'stat-nrc-yazildi', itemsiz: 'stat-itemsiz', nrc_kapandi: 'stat-nrc-kapandi' };
+                const el = document.querySelector(`.stat-box.${map[currentStatusFilter]}`);
+                if (el) el.classList.add('active-filter');
             }
-            document.getElementById('location').focus();
+        }
+
+        // --- Durum filtresi ---
+        let currentStatusFilter = null;
+
+        function filterByStatus(status) {
+            // Aynı butona tekrar basılırsa filtre kalkar
+            if (currentStatusFilter === status) {
+                clearStatusFilter();
+                return;
+            }
+            currentStatusFilter = status;
+            document.getElementById('stat-clear-btn').classList.add('visible');
+            renderFilteredList();
+            updateStats();
+        }
+
+        function clearStatusFilter() {
+            currentStatusFilter = null;
+            document.getElementById('stat-clear-btn').classList.remove('visible');
+            renderFilteredList();
+            updateStats();
+        }
+
+        function renderFilteredList() {
+            const listEl = document.getElementById('defect-list');
+            listEl.innerHTML = '';
+            const data = getFilteredData();
+            if (data.length === 0) {
+                listEl.innerHTML = '<li style="text-align:center;">Filtreye uyan kayıt bulunamadı.</li>';
+                return;
+            }
+            data.forEach(d => renderDefectItem(d));
+        }
+
+        function getFilteredData() {
+            if (!currentStatusFilter) return currentDefectsData;
+            if (currentStatusFilter === 'remaining') {
+                return currentDefectsData.filter(d => !d.status || d.status === '');
+            }
+            return currentDefectsData.filter(d => d.status === currentStatusFilter);
         }
 
         function clearForm() {
@@ -1335,13 +1492,19 @@
             const listEl = document.getElementById('defect-list');
             listEl.innerHTML = "";
 
-            const filtered = currentDefectsData.filter(d =>
-                (d.defect && d.defect.includes(term)) ||
-                (d.location && d.location.includes(term)) ||
-                (d.note && d.note.includes(term)) ||
-                (d.quantity && d.quantity.includes(term))
-            );
+            const base = getFilteredData();
+            const filtered = term
+                ? base.filter(d =>
+                    (d.defect    && d.defect.includes(term))    ||
+                    (d.location  && d.location.includes(term))  ||
+                    (d.note      && d.note.includes(term))      ||
+                    (d.quantity  && d.quantity.includes(term)))
+                : base;
 
+            if (filtered.length === 0) {
+                listEl.innerHTML = '<li style="text-align:center;">Kayıt bulunamadı.</li>';
+                return;
+            }
             filtered.forEach(data => renderDefectItem(data));
         }
 
