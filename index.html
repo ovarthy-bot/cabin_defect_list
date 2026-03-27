@@ -636,7 +636,8 @@
         </div>
     </div>
 
-    <div class="email-info"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ec839a8d9eac988495c28f8381">[email&#160;protected]</a></div>
+    <div class="email-info" id="watermark-email"></div>
+    <script>document.getElementById('watermark-email').textContent = ['ovar','thy.com'].join('@');</script>
 
     <div class="container" id="main-container">
         <div class="input-section">
@@ -724,9 +725,9 @@
         <input type="file" id="excel-import" accept=".xlsx, .xls" style="display:none" onchange="importFromExcel(event)">
     </div>
 
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js" data-cfasync="false"></script>
 
-    <script type="module">
+    <script type="module" data-cfasync="false">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, onSnapshot, query, where, deleteDoc, doc, updateDoc, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getStorage, ref, uploadString, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
@@ -766,8 +767,7 @@
         loadAirplanes();
     </script>
 
-    <script>
-        // --- DEĞİŞKENLER ---
+    <script data-cfasync="false">
         let selectedImageBase64 = null;
         let currentEditingId = null;
         let unsubscribeDefects = null;
