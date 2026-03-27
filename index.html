@@ -1554,14 +1554,15 @@
                 const sheet = workbook.addWorksheet("Defects");
 
                 sheet.columns = [
-                    { header: "UÇAK", key: "airplane", width: 15 },
-                    { header: "DEFECT", key: "defect", width: 40 },
-                    { header: "LOCATION", key: "location", width: 20 },
-                    { header: "NOTE", key: "note", width: 30 },
-                    { header: "P/N", key: "partNumber", width: 15 },
-                    { header: "M/H", key: "manHours", width: 10 },
-                    { header: "QTY", key: "quantity", width: 10 },
-                    { header: "RESİM", key: "image", width: 25 }
+                    { header: "UÇAK",    key: "airplane",    width: 15 },
+                    { header: "DEFECT",  key: "defect",      width: 40 },
+                    { header: "LOCATION",key: "location",    width: 20 },
+                    { header: "NOTE",    key: "note",        width: 30 },
+                    { header: "P/N",     key: "partNumber",  width: 15 },
+                    { header: "M/H",     key: "manHours",    width: 10 },
+                    { header: "QTY",     key: "quantity",    width: 10 },
+                    { header: "RESİM",   key: "image",       width: 25 },
+                    { header: "DURUM",   key: "status",      width: 18 }
                 ];
 
                 sheet.getRow(1).font = { bold: true };
@@ -1570,14 +1571,22 @@
                     const d = currentDefectsData[i];
                     const rowNumber = i + 2;
 
+                    const statusLabels = {
+                        'nrc_yazildi': 'NRC Yazıldı',
+                        'itemsiz':     'Itemsız yapıldı',
+                        'nrc_kapandi': 'NRC Kapatıldı'
+                    };
+                    const statusLabel = statusLabels[d.status] || 'Bekleyen';
+
                     const row = sheet.addRow({
-                        airplane: d.airplane || "",
-                        defect: d.defect || "",
-                        location: d.location || "",
-                        note: d.note || "",
+                        airplane:   d.airplane   || "",
+                        defect:     d.defect     || "",
+                        location:   d.location   || "",
+                        note:       d.note       || "",
                         partNumber: d.partNumber || "",
-                        manHours: d.manHours || "",
-                        quantity: d.quantity || ""
+                        manHours:   d.manHours   || "",
+                        quantity:   d.quantity   || "",
+                        status:     statusLabel
                     });
                     row.height = 90;
 
@@ -1604,6 +1613,8 @@
                     } else {
                         row.getCell(8).value = "Resim Yok";
                     }
+
+                    // DURUM sütunu (9. sütun) addRow key ile zaten yazıldı
                 }
 
                 const buffer = await workbook.xlsx.writeBuffer();
