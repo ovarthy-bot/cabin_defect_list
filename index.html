@@ -383,10 +383,11 @@
             font-size: 13px;
             font-weight: 900;
         }
-        .stat-box.stat-remaining  { background-color: #e05555; }
-        .stat-box.stat-nrc-yazildi { background-color: #3399dd; }
-        .stat-box.stat-itemsiz    { background-color: #28a745; }
-        .stat-box.stat-nrc-kapandi { background-color: #20963a; }
+        .stat-box.stat-remaining        { background-color: #e05555; }
+        .stat-box.stat-nrc-yazildi      { background-color: #3399dd; }
+        .stat-box.stat-itemsiz-yapilacak{ background-color: #3399dd; }
+        .stat-box.stat-itemsiz          { background-color: #28a745; }
+        .stat-box.stat-nrc-kapandi      { background-color: #20963a; }
 
         /* Filtre kaldır butonu */
         .stat-clear {
@@ -407,10 +408,11 @@
         .stat-clear:hover   { background-color: #495057; }
 
         /* dark tema */
-        .dark-theme .stat-box.stat-remaining   { background-color: #922; }
-        .dark-theme .stat-box.stat-nrc-yazildi { background-color: #1a6699; }
-        .dark-theme .stat-box.stat-itemsiz     { background-color: #1a6e30; }
-        .dark-theme .stat-box.stat-nrc-kapandi { background-color: #145e25; }
+        .dark-theme .stat-box.stat-remaining        { background-color: #922; }
+        .dark-theme .stat-box.stat-nrc-yazildi      { background-color: #1a6699; }
+        .dark-theme .stat-box.stat-itemsiz-yapilacak{ background-color: #1a6699; }
+        .dark-theme .stat-box.stat-itemsiz          { background-color: #1a6e30; }
+        .dark-theme .stat-box.stat-nrc-kapandi      { background-color: #145e25; }
 
         /* --- Yan yana input grubu --- */
         .input-row {
@@ -634,7 +636,7 @@
         </div>
     </div>
 
-    <div class="email-info">ovar@thy.com</div>
+    <div class="email-info"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ec839a8d9eac988495c28f8381">[email&#160;protected]</a></div>
 
     <div class="container" id="main-container">
         <div class="input-section">
@@ -652,7 +654,8 @@
             <!-- İstatistik / Filtre Paneli -->
             <div class="stats-panel" id="stats-panel">
                 <button class="stat-box stat-remaining"   onclick="filterByStatus('remaining')"   title="Bekleyen defectleri filtrele"><span class="stat-num" id="stat-remaining">—</span> Bekleyen</button>
-                <button class="stat-box stat-nrc-yazildi" onclick="filterByStatus('nrc_yazildi')" title="NRC Yazıldı filtrele"><span class="stat-num" id="stat-nrc-yazildi">—</span> NRC Yazıldı</button>
+                <button class="stat-box stat-nrc-yazildi"       onclick="filterByStatus('nrc_yazildi')"       title="NRC Yazıldı filtrele"><span class="stat-num" id="stat-nrc-yazildi">—</span> NRC Yazıldı</button>
+                <button class="stat-box stat-itemsiz-yapilacak" onclick="filterByStatus('itemsiz_yapilacak')" title="Itemsiz yapılacak filtrele"><span class="stat-num" id="stat-itemsiz-yapilacak">—</span> Itemsiz yapılacak</button>
                 <button class="stat-box stat-itemsiz"     onclick="filterByStatus('itemsiz')"     title="Itemsız yapıldı filtrele"><span class="stat-num" id="stat-itemsiz">—</span> Itemsız yapıldı</button>
                 <button class="stat-box stat-nrc-kapandi" onclick="filterByStatus('nrc_kapandi')" title="NRC Kapatıldı filtrele"><span class="stat-num" id="stat-nrc-kapandi">—</span> NRC Kapatıldı</button>
                 <button class="stat-clear" id="stat-clear-btn" onclick="clearStatusFilter()">✕ Filtreyi Kaldır</button>
@@ -721,7 +724,7 @@
         <input type="file" id="excel-import" accept=".xlsx, .xls" style="display:none" onchange="importFromExcel(event)">
     </div>
 
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -787,16 +790,17 @@
 
         // --- Durum sabitleri ---
         const STATUS = {
-            NRC_KAPANDI: 'nrc_kapandi',
-            NRC_YAZILDI: 'nrc_yazildi',
-            ITEMSIZ:     'itemsiz'
+            NRC_KAPANDI:       'nrc_kapandi',
+            NRC_YAZILDI:       'nrc_yazildi',
+            ITEMSIZ:           'itemsiz',
+            ITEMSIZ_YAPILACAK: 'itemsiz_yapilacak'
         };
 
-        // Duruma göre li CSS sınıfını döndürür
         function statusClass(status) {
-            if (status === STATUS.NRC_KAPANDI) return 'status-nrc-kapandi';
-            if (status === STATUS.NRC_YAZILDI) return 'status-nrc-yazildi';
-            if (status === STATUS.ITEMSIZ)     return 'status-itemsiz';
+            if (status === STATUS.NRC_KAPANDI)       return 'status-nrc-kapandi';
+            if (status === STATUS.NRC_YAZILDI)       return 'status-nrc-yazildi';
+            if (status === STATUS.ITEMSIZ)           return 'status-itemsiz';
+            if (status === STATUS.ITEMSIZ_YAPILACAK) return 'status-nrc-yazildi';
             return '';
         }
 
@@ -1183,6 +1187,9 @@
                         <button class="status-btn itemsiz ${status === 'itemsiz' ? 'active' : ''}"
                                 data-status="itemsiz"
                                 onclick="setDefectStatus('${data.id}','itemsiz')">Itemsız yapıldı</button>
+                        <button class="status-btn nrc-yazildi ${status === 'itemsiz_yapilacak' ? 'active' : ''}"
+                                data-status="itemsiz_yapilacak"
+                                onclick="setDefectStatus('${data.id}','itemsiz_yapilacak')">Itemsiz yapılacak</button>
                     </div>
                 </div>
             `;
@@ -1373,21 +1380,28 @@
 
         // --- İstatistik güncelleme ---
         function updateStats() {
-            const total      = currentDefectsData.length;
-            const nrcYazildi = currentDefectsData.filter(d => d.status === 'nrc_yazildi').length;
-            const itemsiz    = currentDefectsData.filter(d => d.status === 'itemsiz').length;
-            const nrcKapandi = currentDefectsData.filter(d => d.status === 'nrc_kapandi').length;
-            const remaining  = total - nrcYazildi - itemsiz - nrcKapandi;
+            const total             = currentDefectsData.length;
+            const nrcYazildi        = currentDefectsData.filter(d => d.status === 'nrc_yazildi').length;
+            const itemsizYapilacak  = currentDefectsData.filter(d => d.status === 'itemsiz_yapilacak').length;
+            const itemsiz           = currentDefectsData.filter(d => d.status === 'itemsiz').length;
+            const nrcKapandi        = currentDefectsData.filter(d => d.status === 'nrc_kapandi').length;
+            const remaining         = total - nrcYazildi - itemsizYapilacak - itemsiz - nrcKapandi;
 
-            document.getElementById('stat-remaining').textContent   = remaining;
-            document.getElementById('stat-nrc-yazildi').textContent = nrcYazildi;
-            document.getElementById('stat-itemsiz').textContent     = itemsiz;
-            document.getElementById('stat-nrc-kapandi').textContent = nrcKapandi;
+            document.getElementById('stat-remaining').textContent          = remaining;
+            document.getElementById('stat-nrc-yazildi').textContent        = nrcYazildi;
+            document.getElementById('stat-itemsiz-yapilacak').textContent  = itemsizYapilacak;
+            document.getElementById('stat-itemsiz').textContent            = itemsiz;
+            document.getElementById('stat-nrc-kapandi').textContent        = nrcKapandi;
 
-            // Aktif filtre vurgusu
             document.querySelectorAll('.stat-box').forEach(btn => btn.classList.remove('active-filter'));
             if (currentStatusFilter) {
-                const map = { remaining: 'stat-remaining', nrc_yazildi: 'stat-nrc-yazildi', itemsiz: 'stat-itemsiz', nrc_kapandi: 'stat-nrc-kapandi' };
+                const map = {
+                    remaining:          'stat-remaining',
+                    nrc_yazildi:        'stat-nrc-yazildi',
+                    itemsiz_yapilacak:  'stat-itemsiz-yapilacak',
+                    itemsiz:            'stat-itemsiz',
+                    nrc_kapandi:        'stat-nrc-kapandi'
+                };
                 const el = document.querySelector(`.stat-box.${map[currentStatusFilter]}`);
                 if (el) el.classList.add('active-filter');
             }
@@ -1572,9 +1586,10 @@
                     const rowNumber = i + 2;
 
                     const statusLabels = {
-                        'nrc_yazildi': 'NRC Yazıldı',
-                        'itemsiz':     'Itemsız yapıldı',
-                        'nrc_kapandi': 'NRC Kapatıldı'
+                        'nrc_yazildi':       'NRC Yazıldı',
+                        'itemsiz_yapilacak': 'Itemsiz yapılacak',
+                        'itemsiz':           'Itemsız yapıldı',
+                        'nrc_kapandi':       'NRC Kapatıldı'
                     };
                     const statusLabel = statusLabels[d.status] || 'Bekleyen';
 
@@ -1659,12 +1674,4 @@
             }
         });
 
-        const defectInputEl = document.getElementById("defect");
-        if (defectInputEl) {
-            defectInputEl.addEventListener("blur", () => {
-                setTimeout(hideSuggestions, 120);
-            });
-        }
-    </script>
-</body>
-</html>
+        const defectInputEl = docum
