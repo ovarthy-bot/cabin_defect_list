@@ -658,7 +658,7 @@
                 <button class="stat-clear" id="stat-clear-btn" onclick="clearStatusFilter()">✕ Filtreyi Kaldır</button>
             </div>
             <input type="text" id="defect" placeholder="Defect giriniz" autocomplete="off"
-                oninput="this.value = this.value.toUpperCase(); showSuggestions(this.value)">
+                oninput="handleDefectInput(event)">
             <div id="suggestion-list" class="suggestion-list"></div>
 
             <div class="input-row">
@@ -798,6 +798,21 @@
             if (status === STATUS.NRC_YAZILDI) return 'status-nrc-yazildi';
             if (status === STATUS.ITEMSIZ)     return 'status-itemsiz';
             return '';
+        }
+
+        // --- İmleci koruyan Defect input handler ---
+        function handleDefectInput(event) {
+            const input = event.target;
+            const start = input.selectionStart;
+            const end = input.selectionEnd;
+            
+            input.value = input.value.toUpperCase();
+            
+            // İmleci orijinal konumuna geri koy
+            input.selectionStart = start;
+            input.selectionEnd = end;
+            
+            showSuggestions(input.value);
         }
 
         // --- Firebase entegreli durum güncelleme ---
